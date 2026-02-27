@@ -1,0 +1,201 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Admin UI (shadcn) CSS variables ─────────────────────────────────────── */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 239 84% 67%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 239 84% 67%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ─── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.7); }
+
+/* ─── PUBLIC PAGE THEMES ───────────────────────────────────────────────────── */
+
+/* 1. dark-gradient */
+.theme-dark-gradient {
+  --page-bg: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  --card-bg: rgba(255, 255, 255, 0.07);
+  --card-border: rgba(255, 255, 255, 0.12);
+  --card-hover-bg: rgba(255, 255, 255, 0.13);
+  --card-hover-border: rgba(255, 255, 255, 0.25);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --social-bg: rgba(255, 255, 255, 0.1);
+  --social-hover: rgba(255, 255, 255, 0.2);
+  --cta-bg: rgba(255, 255, 255, 0.08);
+  --cta-border: rgba(255, 255, 255, 0.15);
+}
+
+/* 2. minimal-light */
+.theme-minimal-light {
+  --page-bg: #f8fafc;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-hover-bg: #f1f5f9;
+  --card-hover-border: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --social-bg: #f1f5f9;
+  --social-hover: #e2e8f0;
+  --cta-bg: #f8fafc;
+  --cta-border: #e2e8f0;
+}
+
+/* 3. glassmorphism */
+.theme-glassmorphism {
+  --page-bg: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  --card-bg: rgba(255, 255, 255, 0.15);
+  --card-border: rgba(255, 255, 255, 0.25);
+  --card-hover-bg: rgba(255, 255, 255, 0.25);
+  --card-hover-border: rgba(255, 255, 255, 0.45);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --social-bg: rgba(255, 255, 255, 0.15);
+  --social-hover: rgba(255, 255, 255, 0.3);
+  --cta-bg: rgba(255, 255, 255, 0.1);
+  --cta-border: rgba(255, 255, 255, 0.2);
+}
+
+/* 4. neon-dark */
+.theme-neon-dark {
+  --page-bg: #0a0a0f;
+  --card-bg: #111118;
+  --card-border: rgba(0, 255, 136, 0.25);
+  --card-hover-bg: #16161f;
+  --card-hover-border: rgba(0, 255, 136, 0.6);
+  --text-primary: #f0f0ff;
+  --text-secondary: rgba(240, 240, 255, 0.6);
+  --social-bg: rgba(0, 255, 136, 0.07);
+  --social-hover: rgba(0, 255, 136, 0.15);
+  --cta-bg: #111118;
+  --cta-border: rgba(0, 255, 136, 0.3);
+}
+
+/* 5. warm-gradient */
+.theme-warm-gradient {
+  --page-bg: linear-gradient(135deg, #f093fb 0%, #f5576c 40%, #fda085 100%);
+  --card-bg: rgba(255, 255, 255, 0.82);
+  --card-border: rgba(255, 255, 255, 0.6);
+  --card-hover-bg: rgba(255, 255, 255, 0.95);
+  --card-hover-border: rgba(255, 255, 255, 0.9);
+  --text-primary: #3d1a00;
+  --text-secondary: #7c3a10;
+  --social-bg: rgba(255, 255, 255, 0.5);
+  --social-hover: rgba(255, 255, 255, 0.8);
+  --cta-bg: rgba(255, 255, 255, 0.6);
+  --cta-border: rgba(255, 255, 255, 0.5);
+}
+
+/* ─── Public page shared styles ────────────────────────────────────────────── */
+.bio-page {
+  min-height: 100vh;
+  background: var(--page-bg);
+  color: var(--text-primary);
+}
+
+.bio-link-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bio-link-card:hover {
+  background: var(--card-hover-bg);
+  border-color: var(--card-hover-border);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.theme-neon-dark .bio-link-card:hover {
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+}
+
+.bio-social-icon {
+  background: var(--social-bg);
+  color: var(--text-primary);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.bio-social-icon:hover {
+  background: var(--social-hover);
+  transform: scale(1.1);
+}
+
+.bio-text-secondary {
+  color: var(--text-secondary);
+}
+
+.bio-cta {
+  background: var(--cta-bg);
+  border: 1px solid var(--cta-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Neon glow on card borders for neon-dark */
+.theme-neon-dark .bio-link-card {
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.08);
+}

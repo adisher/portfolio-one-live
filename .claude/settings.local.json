@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"D:\\\\awais\\\\adilsherdotpro\\\\nextjs-portfolio\\\\app\"\" 2>/dev/null || find \"D:awaisadilsherdotpronextjs-portfolioapp \" -type f)",
+      "Bash(npm install --legacy-peer-deps)",
+      "Bash(npm run build)"
+    ]
+  }
+}
