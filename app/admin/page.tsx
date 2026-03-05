@@ -40,9 +40,51 @@ function generateDummyAnalytics(): AnalyticsData {
   }
 }
 
+function mergeWithDummy(real: AnalyticsData, dummy: AnalyticsData): AnalyticsData {
+  // dailyViews: merge by date, summing counts
+  const viewMap: Record<string, number> = {}
+  for (const d of dummy.dailyViews) viewMap[d.date] = (viewMap[d.date] ?? 0) + d.views
+  for (const d of real.dailyViews) viewMap[d.date] = (viewMap[d.date] ?? 0) + d.views
+  const dailyViews = Object.entries(viewMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, views]) => ({ date, views }))
+
+  // topCountries: merge by country key
+  const countryMap: Record<string, number> = {}
+  for (const c of [...dummy.topCountries, ...real.topCountries])
+    countryMap[c.country] = (countryMap[c.country] ?? 0) + c.count
+  const topCountries = Object.entries(countryMap)
+    .map(([country, count]) => ({ country, count }))
+    .sort((a, b) => b.count - a.count)
+
+  // topReferrers: merge by referrer key
+  const refMap: Record<string, number> = {}
+  for (const r of [...dummy.topReferrers, ...real.topReferrers])
+    refMap[r.referrer] = (refMap[r.referrer] ?? 0) + r.count
+  const topReferrers = Object.entries(refMap)
+    .map(([referrer, count]) => ({ referrer, count }))
+    .sort((a, b) => b.count - a.count)
+
+  // topLinks: merge by linkId key
+  const linkMap: Record<string, number> = {}
+  for (const l of [...dummy.topLinks, ...real.topLinks])
+    linkMap[l.linkId] = (linkMap[l.linkId] ?? 0) + l.count
+  const topLinks = Object.entries(linkMap)
+    .map(([linkId, count]) => ({ linkId, count }))
+    .sort((a, b) => b.count - a.count)
+
+  return {
+    dailyViews,
+    totalViews: real.totalViews + dummy.totalViews,
+    topCountries,
+    topReferrers,
+    topLinks,
+  }
+}
+
 export default async function DashboardPage() {
   const [analytics, config] = await Promise.all([getAnalytics(), getConfig()])
-  const displayAnalytics = analytics.totalViews === 0 ? generateDummyAnalytics() : analytics
+  const displayAnalytics = mergeWithDummy(analytics, generateDummyAnalytics())
 
   return (
     <div className="space-y-6">
