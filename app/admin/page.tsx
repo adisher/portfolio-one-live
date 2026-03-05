@@ -24,9 +24,9 @@ function generateDummyAnalytics(): AnalyticsData {
       { country: 'AU', count: 209 },
     ],
     topReferrers: [
-      { referrer: 'twitter.com', count: 924 },
+      { referrer: 'google.com', count: 924 },
+      { referrer: 'twitter.com', count: 448 },
       { referrer: 'github.com', count: 611 },
-      { referrer: 'google.com', count: 488 },
       { referrer: 'linkedin.com', count: 302 },
       { referrer: 'direct', count: 271 },
     ],
