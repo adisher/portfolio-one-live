@@ -1,22 +1,50 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
-import { KeyRound, Download, Upload, Loader2 } from 'lucide-react'
+import { KeyRound, Download, Upload, Loader2, Mail } from 'lucide-react'
 
 export function SettingsEditor() {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordSaving, setPasswordSaving] = useState(false)
+  const [recoveryEmail, setRecoveryEmail] = useState('')
+  const [emailSaving, setEmailSaving] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    fetch('/api/admin/recovery-email')
+      .then(r => r.json())
+      .then(data => { if (data.email) setRecoveryEmail(data.email) })
+      .catch(() => {})
+  }, [])
+
+  async function handleSaveEmail() {
+    if (!recoveryEmail) { toast.error('Enter an email address.'); return }
+    setEmailSaving(true)
+    try {
+      const res = await fetch('/api/admin/recovery-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: recoveryEmail }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { toast.error(data?.error ?? 'Failed to save email.'); return }
+      toast.success('Recovery email saved!')
+    } catch {
+      toast.error('An error occurred.')
+    } finally {
+      setEmailSaving(false)
+    }
+  }
 
   async function handleChangePassword() {
     if (!currentPassword) { toast.error('Enter your current password.'); return }
@@ -95,6 +123,39 @@ export function SettingsEditor() {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Recovery Email
+          </CardTitle>
+          <CardDescription>
+            This email receives your password reset link if you ever get locked out.
+            Make sure it&apos;s one you can always access.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1">
+            <Label htmlFor="recoveryEmail">Email address</Label>
+            <Input
+              id="recoveryEmail"
+              type="email"
+              placeholder="you@example.com"
+              value={recoveryEmail}
+              onChange={e => setRecoveryEmail(e.target.value)}
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={handleSaveEmail} disabled={emailSaving} className="min-w-[160px]">
+              {emailSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {emailSaving ? 'Saving…' : 'Save Email'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

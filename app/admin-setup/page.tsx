@@ -13,6 +13,7 @@ type Mode = 'loading' | 'setup' | 'login' | 'error'
 export default function AdminSetupPage() {
   const router = useRouter()
   const [mode, setMode] = useState<Mode>('loading')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
@@ -23,12 +24,8 @@ export default function AdminSetupPage() {
     fetch('/api/admin/setup')
       .then(r => r.json())
       .then(data => {
-        if (data.redisError) {
-          setRedisError(true)
-          setMode('error')
-        } else {
-          setMode(data.needsSetup ? 'setup' : 'login')
-        }
+        if (data.redisError) { setRedisError(true); setMode('error') }
+        else setMode(data.needsSetup ? 'setup' : 'login')
       })
       .catch(() => { setMode('error'); setRedisError(true) })
   }, [])
@@ -36,13 +33,14 @@ export default function AdminSetupPage() {
   async function handleSetup(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    if (!email) { setError('Email is required.'); return }
     if (password.length < 8) { setError('Password must be at least 8 characters.'); return }
     if (password !== confirm) { setError('Passwords do not match.'); return }
     setSubmitting(true)
     const res = await fetch('/api/admin/setup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ email, password }),
     })
     const data = await res.json()
     if (data.success) {
@@ -120,12 +118,26 @@ export default function AdminSetupPage() {
           </CardTitle>
           <CardDescription>
             {mode === 'setup'
-              ? 'Create a password to protect your admin panel. You only do this once.'
+              ? 'Create your admin account. Your email is used for password recovery only.'
               : 'Enter your admin password to continue.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={mode === 'setup' ? handleSetup : handleLogin} className="space-y-4">
+            {mode === 'setup' && (
+              <div className="space-y-2">
+                <Label htmlFor="email">Email address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  autoFocus
+                  required
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -134,7 +146,7 @@ export default function AdminSetupPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder={mode === 'setup' ? 'At least 8 characters' : 'Your admin password'}
-                autoFocus
+                autoFocus={mode === 'login'}
                 required
               />
             </div>
@@ -158,8 +170,16 @@ export default function AdminSetupPage() {
             )}
             <Button type="submit" className="w-full" disabled={submitting}>
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {mode === 'setup' ? 'Create Password & Enter' : 'Log In'}
+              {mode === 'setup' ? 'Create Account & Enter' : 'Log In'}
             </Button>
+            {mode === 'login' && (
+              <p className="text-center text-sm text-muted-foreground">
+                Forgot your password?{' '}
+                <a href="/admin-forgot-password" className="text-primary underline-offset-4 hover:underline">
+                  Reset via email
+                </a>
+              </p>
+            )}
           </form>
         </CardContent>
       </Card>
