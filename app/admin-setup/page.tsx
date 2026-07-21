@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, AlertCircle, Lock } from 'lucide-react'
+import { Loader2, AlertCircle, Lock, ShieldCheck, Copy, Check } from 'lucide-react'
 
-type Mode = 'loading' | 'setup' | 'login' | 'error'
+type Mode = 'loading' | 'setup' | 'login' | 'error' | 'recovery-code'
 
 export default function AdminSetupPage() {
   const router = useRouter()
@@ -18,6 +18,8 @@ export default function AdminSetupPage() {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [redisError, setRedisError] = useState(false)
+  const [recoveryCode, setRecoveryCode] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     fetch('/api/admin/setup')
@@ -46,8 +48,9 @@ export default function AdminSetupPage() {
     })
     const data = await res.json()
     if (data.success) {
-      router.push('/admin')
-      router.refresh()
+      setRecoveryCode(data.recoveryCode)
+      setMode('recovery-code')
+      setSubmitting(false)
     } else {
       setError(data.error || 'Setup failed.')
       setSubmitting(false)
@@ -71,6 +74,12 @@ export default function AdminSetupPage() {
       setError(data.error || 'Login failed.')
       setSubmitting(false)
     }
+  }
+
+  async function copyCode() {
+    await navigator.clipboard.writeText(recoveryCode)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   if (mode === 'loading') {
@@ -102,6 +111,42 @@ export default function AdminSetupPage() {
               If you deployed via the one-click button, the Upstash integration should have auto-injected these.
               Visit your Vercel project → Settings → Environment Variables to verify.
             </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (mode === 'recovery-code') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-3 w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+              <ShieldCheck className="h-6 w-6 text-green-500" />
+            </div>
+            <CardTitle className="text-2xl">Save Your Recovery Code</CardTitle>
+            <CardDescription>
+              If you ever forget your password, this code lets you reset it.
+              Store it somewhere safe — it will <strong>not</strong> be shown again.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2 rounded-lg border bg-muted p-3">
+              <code className="flex-1 text-sm font-mono break-all select-all">{recoveryCode}</code>
+              <Button variant="ghost" size="icon" onClick={copyCode} className="shrink-0">
+                {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Treat this like a password. Anyone with this code can reset your admin access.
+            </p>
+            <Button
+              className="w-full"
+              onClick={() => { router.push('/admin'); router.refresh() }}
+            >
+              I&apos;ve saved it — Go to Dashboard
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -160,6 +205,14 @@ export default function AdminSetupPage() {
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {mode === 'setup' ? 'Create Password & Enter' : 'Log In'}
             </Button>
+            {mode === 'login' && (
+              <p className="text-center text-sm text-muted-foreground">
+                Forgot your password?{' '}
+                <a href="/admin-reset" className="text-primary underline-offset-4 hover:underline">
+                  Reset with recovery code
+                </a>
+              </p>
+            )}
           </form>
         </CardContent>
       </Card>

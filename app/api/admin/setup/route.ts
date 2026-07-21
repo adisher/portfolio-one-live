@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { getPasswordHash, setPasswordHash } from '@/lib/redis'
+import crypto from 'crypto'
+import { getPasswordHash, setPasswordHash, setRecoveryCodeHash } from '@/lib/redis'
 import { createSession, SESSION_COOKIE, SESSION_DURATION } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
@@ -19,8 +20,13 @@ export async function POST(request: NextRequest) {
     const hash = await bcrypt.hash(password, 12)
     await setPasswordHash(hash)
 
+    // Generate a one-time recovery code and store only its hash
+    const recoveryCode = crypto.randomBytes(16).toString('hex')
+    const recoveryHash = await bcrypt.hash(recoveryCode, 10)
+    await setRecoveryCodeHash(recoveryHash)
+
     const token = await createSession()
-    const response = NextResponse.json({ success: true })
+    const response = NextResponse.json({ success: true, recoveryCode })
     response.cookies.set(SESSION_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

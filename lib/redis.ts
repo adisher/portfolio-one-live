@@ -47,6 +47,20 @@ export async function setPasswordHash(hash: string): Promise<void> {
   await r.set(REDIS_KEYS.passwordHash, hash)
 }
 
+export async function getRecoveryCodeHash(): Promise<string | null> {
+  try {
+    const r = getRedis()
+    return await r.get<string>(REDIS_KEYS.recoveryCodeHash)
+  } catch {
+    return null
+  }
+}
+
+export async function setRecoveryCodeHash(hash: string): Promise<void> {
+  const r = getRedis()
+  await r.set(REDIS_KEYS.recoveryCodeHash, hash)
+}
+
 export async function isRedisConfigured(): Promise<boolean> {
   return !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
 }
