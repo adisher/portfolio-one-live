@@ -50,7 +50,17 @@ export async function setPasswordHash(hash: string): Promise<void> {
 export async function getAdminEmail(): Promise<string | null> {
   try {
     const r = getRedis()
-    return await r.get<string>(REDIS_KEYS.adminEmail)
+    const stored = await r.get<string>(REDIS_KEYS.adminEmail)
+    if (stored) return stored
+
+    // Seed from env var for existing setups that predate the email field
+    const envEmail = process.env.ADMIN_RECOVERY_EMAIL?.toLowerCase().trim()
+    if (envEmail) {
+      await r.set(REDIS_KEYS.adminEmail, envEmail)
+      return envEmail
+    }
+
+    return null
   } catch {
     return null
   }
