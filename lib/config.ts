@@ -99,7 +99,8 @@ export const DEFAULT_CONFIG: SiteConfig = {
 export const REDIS_KEYS = {
   config: 'site:config',
   passwordHash: 'site:password_hash',
-  recoveryCodeHash: 'site:recovery_code',
+  adminEmail: 'site:admin_email',
+  resetToken: 'site:reset_token',
   analyticsViews: 'analytics:views',
   analyticsCountries: 'analytics:countries',
   analyticsReferrers: 'analytics:referrers',

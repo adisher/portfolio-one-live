@@ -47,18 +47,42 @@ export async function setPasswordHash(hash: string): Promise<void> {
   await r.set(REDIS_KEYS.passwordHash, hash)
 }
 
-export async function getRecoveryCodeHash(): Promise<string | null> {
+export async function getAdminEmail(): Promise<string | null> {
   try {
     const r = getRedis()
-    return await r.get<string>(REDIS_KEYS.recoveryCodeHash)
+    return await r.get<string>(REDIS_KEYS.adminEmail)
   } catch {
     return null
   }
 }
 
-export async function setRecoveryCodeHash(hash: string): Promise<void> {
+export async function setAdminEmail(email: string): Promise<void> {
   const r = getRedis()
-  await r.set(REDIS_KEYS.recoveryCodeHash, hash)
+  await r.set(REDIS_KEYS.adminEmail, email)
+}
+
+export async function setResetToken(token: string): Promise<void> {
+  const r = getRedis()
+  // Token expires in 1 hour
+  await r.set(REDIS_KEYS.resetToken, token, { ex: 3600 })
+}
+
+export async function getResetToken(): Promise<string | null> {
+  try {
+    const r = getRedis()
+    return await r.get<string>(REDIS_KEYS.resetToken)
+  } catch {
+    return null
+  }
+}
+
+export async function deleteResetToken(): Promise<void> {
+  try {
+    const r = getRedis()
+    await r.del(REDIS_KEYS.resetToken)
+  } catch {
+    // Silent
+  }
 }
 
 export async function isRedisConfigured(): Promise<boolean> {
