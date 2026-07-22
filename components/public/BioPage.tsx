@@ -303,7 +303,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                       className="w-full"
                       style={{ height: 460 }}
                       loading="lazy"
-                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
                       title="Embedded content"
                     />
                   </motion.div>

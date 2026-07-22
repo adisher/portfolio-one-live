@@ -47,6 +47,20 @@ const BLOCK_ICON: Record<BlockType, React.ElementType> = {
   link: Link2, header: Heading, video: Video, music: Music, embed: Code2,
 }
 
+// Creative default section headings, picked at random when a new section
+// starts. Users can edit the text or switch the header off.
+const HEADER_IDEAS: Record<BlockType, string[]> = {
+  link: ['🔗 Explore My Links', '🌟 Where to Find Me', '👉 Start Here', '✨ My Corner of the Web'],
+  video: ['🎬 Watch This', '📺 On Screen', '🍿 Press Play', '🎥 Featured Video'],
+  music: ['🎵 Now Playing', '🎧 On Repeat', '🔊 Listen In', '🎶 My Soundtrack'],
+  embed: ['✨ Take a Look', '📌 Check This Out', '👇 Right This Way', '🗓️ Let’s Connect'],
+  header: [''],
+}
+function creativeHeader(type: BlockType): string {
+  const ideas = HEADER_IDEAS[type]
+  return ideas[Math.floor(Math.random() * ideas.length)]
+}
+
 function rowSummary(b: ContentBlock): { primary: string; secondary: string } {
   switch (b.type) {
     case 'header': return { primary: b.text || 'Section header', secondary: 'Header' }
@@ -462,9 +476,27 @@ export function LinksEditor({ config }: LinksEditorProps) {
   function handleDialogSave(updated: ContentBlock) {
     setBlocks(prev => {
       const exists = prev.find(l => l.id === updated.id)
-      return exists
-        ? prev.map(l => l.id === updated.id ? updated : l)
-        : [...prev, updated]
+      if (exists) return prev.map(l => l.id === updated.id ? updated : l)
+
+      // New block: when it starts a new section (list empty, or the previous
+      // block is a different, non-header type), auto-insert a creative header
+      // above it. The user can edit the text or switch it off.
+      const last = prev[prev.length - 1]
+      const needsHeader =
+        updated.type !== 'header' &&
+        (!last || (last.type !== 'header' && last.type !== updated.type))
+
+      if (needsHeader) {
+        const header: ContentBlock = {
+          id: generateId(),
+          type: 'header',
+          enabled: true,
+          order: prev.length,
+          text: creativeHeader(updated.type),
+        }
+        return [...prev, header, updated]
+      }
+      return [...prev, updated]
     })
     setDialogOpen(false)
     setEditing(null)
@@ -517,12 +549,19 @@ export function LinksEditor({ config }: LinksEditorProps) {
         </DndContext>
 
         {/* Add-block toolbar */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
-          {BLOCK_TYPES.map(t => (
-            <Button key={t.type} variant="outline" size="sm" className="gap-1.5" onClick={() => handleAdd(t.type)}>
-              <t.icon className="h-4 w-4" /> {t.label}
-            </Button>
-          ))}
+        <div className="pt-3 border-t border-border">
+          <p className="text-sm font-medium">Add a block</p>
+          <p className="text-xs text-muted-foreground mb-2">
+            Use the buttons below to add links, headers, videos, music or embeds. A creative
+            section heading is added automatically — edit its text or switch it off anytime.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {BLOCK_TYPES.map(t => (
+              <Button key={t.type} variant="outline" size="sm" className="gap-1.5" onClick={() => handleAdd(t.type)}>
+                <t.icon className="h-4 w-4" /> {t.label}
+              </Button>
+            ))}
+          </div>
         </div>
 
         <div className="flex justify-end pt-2">
