@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { SiteConfig } from '@/lib/config'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SaveButton } from '@/components/admin/SaveButton'
+import { ImageUpload } from '@/components/admin/ImageUpload'
 
 interface ProfileEditorProps {
   config: SiteConfig
@@ -34,27 +34,19 @@ export function ProfileEditor({ config }: ProfileEditorProps) {
         <CardTitle>Profile Information</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Avatar preview */}
-        <div className="flex items-center gap-5">
-          <div className="relative w-20 h-20 rounded-full overflow-hidden bg-muted shrink-0 border border-border">
-            {avatarUrl ? (
-              <Image src={avatarUrl} alt="Avatar preview" fill className="object-cover" unoptimized />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-muted-foreground">
-                {name.charAt(0).toUpperCase() || '?'}
-              </div>
-            )}
-          </div>
-          <div className="flex-1 space-y-2">
-            <Label htmlFor="avatarUrl">Avatar URL</Label>
-            <Input
-              id="avatarUrl"
-              value={avatarUrl}
-              onChange={e => setAvatarUrl(e.target.value)}
-              placeholder="https://example.com/your-photo.jpg"
-            />
-            <p className="text-xs text-muted-foreground">Paste any image URL — GitHub avatar, Gravatar, CDN link, etc.</p>
-          </div>
+        {/* Avatar */}
+        <div className="space-y-2">
+          <Label>Avatar</Label>
+          <ImageUpload
+            value={avatarUrl}
+            onChange={v => setAvatarUrl(v ?? '')}
+            shape="circle"
+            crop="square"
+            maxDim={400}
+          />
+          <p className="text-xs text-muted-foreground">
+            Upload a photo or paste any image URL (GitHub avatar, Gravatar, CDN link…). Transparent PNGs keep their transparency.
+          </p>
         </div>
 
         <div className="space-y-2">
