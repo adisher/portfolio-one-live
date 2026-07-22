@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/profile', label: 'Profile', icon: User },
-  { href: '/admin/links', label: 'Links', icon: Link2 },
+  { href: '/admin/links', label: 'Content', icon: Link2 },
   { href: '/admin/social', label: 'Social Profiles', icon: Share2 },
   { href: '/admin/appearance', label: 'Appearance', icon: Palette },
   { href: '/admin/sections', label: 'Sections', icon: Layers },

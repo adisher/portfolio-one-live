@@ -8,8 +8,8 @@ export default async function LinksPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Links</h1>
-        <p className="text-muted-foreground mt-1">Add, edit, reorder and toggle your links.</p>
+        <h1 className="text-3xl font-bold">Content</h1>
+        <p className="text-muted-foreground mt-1">Links, headers, videos, music and embeds — drag to reorder.</p>
       </div>
       <LinksEditor config={config} />
     </div>

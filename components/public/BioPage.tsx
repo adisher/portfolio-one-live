@@ -27,6 +27,29 @@ function getYouTubeEmbedUrl(url: string): string {
   return url
 }
 
+// Video blocks: YouTube + Vimeo.
+function getVideoEmbedUrl(url: string): string {
+  if (!url) return ''
+  const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`
+  return getYouTubeEmbedUrl(url)
+}
+
+// Music blocks: Spotify + Apple Music → embed URL + a sensible frame height.
+function getMusicEmbed(url: string): { src: string; height: number } {
+  if (!url) return { src: '', height: 152 }
+  const sp = url.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(track|album|playlist|episode|show|artist)\/([a-zA-Z0-9]+)/)
+  if (sp) {
+    const compact = sp[1] === 'track' || sp[1] === 'episode'
+    return { src: `https://open.spotify.com/embed/${sp[1]}/${sp[2]}`, height: compact ? 152 : 352 }
+  }
+  if (url.includes('music.apple.com')) {
+    const isSong = /[?&]i=\d+/.test(url) || /\/song\//.test(url)
+    return { src: url.replace('music.apple.com', 'embed.music.apple.com'), height: isSong ? 175 : 450 }
+  }
+  return { src: url, height: 152 }
+}
+
 function trackPageView() {
   fetch('/api/track', {
     method: 'POST',
@@ -208,7 +231,85 @@ export function BioPage({ config, themeClass }: BioPageProps) {
         {config.showLinks && blocks.length > 0 && (
           <div className="space-y-3 mb-8">
             {blocks.map((block, i) => {
-              if (block.type !== 'link') return null // header/video/music/embed land in G2
+              const delay = i + 3
+
+              if (block.type === 'header') {
+                return (
+                  <motion.div
+                    key={block.id}
+                    className="pt-3 pb-0.5 first:pt-0"
+                    variants={fadeUp} initial="hidden" animate="visible" custom={delay}
+                  >
+                    <h2 className="text-center text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+                      {block.text}
+                    </h2>
+                  </motion.div>
+                )
+              }
+
+              if (block.type === 'video') {
+                const src = getVideoEmbedUrl(block.embedUrl || '')
+                if (!src) return null
+                return (
+                  <motion.div
+                    key={block.id}
+                    className="rounded-xl overflow-hidden"
+                    style={{ border: '1px solid var(--card-border)' }}
+                    variants={fadeUp} initial="hidden" animate="visible" custom={delay}
+                  >
+                    <iframe
+                      src={src}
+                      className="w-full aspect-video"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title="Video"
+                    />
+                  </motion.div>
+                )
+              }
+
+              if (block.type === 'music') {
+                const { src, height } = getMusicEmbed(block.embedUrl || '')
+                if (!src) return null
+                return (
+                  <motion.div
+                    key={block.id}
+                    className="rounded-xl overflow-hidden"
+                    variants={fadeUp} initial="hidden" animate="visible" custom={delay}
+                  >
+                    <iframe
+                      src={src}
+                      className="w-full"
+                      style={{ height, border: 0 }}
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      loading="lazy"
+                      title="Music"
+                    />
+                  </motion.div>
+                )
+              }
+
+              if (block.type === 'embed') {
+                if (!block.embedUrl) return null
+                return (
+                  <motion.div
+                    key={block.id}
+                    className="rounded-xl overflow-hidden bg-white"
+                    style={{ border: '1px solid var(--card-border)' }}
+                    variants={fadeUp} initial="hidden" animate="visible" custom={delay}
+                  >
+                    <iframe
+                      src={block.embedUrl}
+                      className="w-full"
+                      style={{ height: 460 }}
+                      loading="lazy"
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                      title="Embedded content"
+                    />
+                  </motion.div>
+                )
+              }
+
               const featured = !!block.featured
               return (
                 <motion.a
