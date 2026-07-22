@@ -237,12 +237,17 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                 return (
                   <motion.div
                     key={block.id}
-                    className="pt-3 pb-0.5 first:pt-0"
+                    className="flex items-center gap-3 pt-7 pb-1 first:pt-1"
                     variants={fadeUp} initial="hidden" animate="visible" custom={delay}
                   >
-                    <h2 className="text-center text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    <span className="h-px flex-1" style={{ background: 'var(--card-border)' }} />
+                    <h2
+                      className="text-xs font-bold uppercase tracking-[0.18em] whitespace-nowrap"
+                      style={{ color: 'var(--text-primary)', opacity: 0.9 }}
+                    >
                       {block.text}
                     </h2>
+                    <span className="h-px flex-1" style={{ background: 'var(--card-border)' }} />
                   </motion.div>
                 )
               }
@@ -328,7 +333,9 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                   className={`bio-link-card flex items-center gap-4 rounded-xl w-full ${
                     featured ? 'px-5 py-5' : 'px-5 py-4'
                   }`}
-                  style={featured ? { boxShadow: `0 0 0 2px ${config.accentColor || '#6366f1'}` } : undefined}
+                  style={featured ? {
+                    boxShadow: `0 0 0 1.5px ${config.accentColor || '#6366f1'}, 0 10px 30px -12px ${config.accentColor || '#6366f1'}99`,
+                  } : undefined}
                   variants={fadeUp}
                   initial="hidden"
                   animate="visible"
