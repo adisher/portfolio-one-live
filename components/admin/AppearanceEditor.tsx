@@ -1,12 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { SiteConfig, ThemeName } from '@/lib/config'
+import {
+  SiteConfig, ThemeName,
+  type LinkLayout, type ButtonShape, type ButtonFill, type BackgroundType,
+} from '@/lib/config'
 import { THEMES } from '@/lib/themes'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SaveButton } from '@/components/admin/SaveButton'
+import { ImageUpload } from '@/components/admin/ImageUpload'
 import { Check } from 'lucide-react'
 
 interface AppearanceEditorProps {
@@ -25,12 +31,24 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
   const [theme, setTheme] = useState<ThemeName>(config.theme)
   const [accentColor, setAccentColor] = useState(config.accentColor || '#6366f1')
   const [fontFamily, setFontFamily] = useState(config.fontFamily || 'Inter')
+  const [linkLayout, setLinkLayout] = useState<LinkLayout>(config.linkLayout || 'list')
+  const [buttonShape, setButtonShape] = useState<ButtonShape>(config.buttonShape || 'rounded')
+  const [buttonFill, setButtonFill] = useState<ButtonFill>(config.buttonFill || 'solid')
+  const [backgroundType, setBackgroundType] = useState<BackgroundType>(config.backgroundType || 'theme')
+  const [backgroundUrl, setBackgroundUrl] = useState(config.backgroundUrl || '')
+  const [backgroundOverlay, setBackgroundOverlay] = useState(config.backgroundOverlay || 0)
+  const [customCss, setCustomCss] = useState(config.customCss || '')
 
   async function save() {
     const res = await fetch('/api/admin/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ theme, accentColor, fontFamily }),
+      body: JSON.stringify({
+        theme, accentColor, fontFamily,
+        linkLayout, buttonShape, buttonFill,
+        backgroundType, backgroundUrl, backgroundOverlay,
+        customCss,
+      }),
     })
     if (!res.ok) throw new Error('Save failed')
   }
@@ -134,11 +152,122 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
             </Select>
           </div>
 
-          <div className="flex justify-end">
-            <SaveButton onSave={save} />
+        </CardContent>
+      </Card>
+
+      {/* Layout & Buttons */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Layout &amp; Buttons</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="space-y-2">
+            <Label>Link layout</Label>
+            <Select value={linkLayout} onValueChange={v => setLinkLayout(v as LinkLayout)}>
+              <SelectTrigger className="w-60"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="list">List — full-width rows</SelectItem>
+                <SelectItem value="grid">Grid — 2-column tiles</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Featured links, videos, music and embeds always span full width.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4 max-w-md">
+            <div className="space-y-2">
+              <Label>Button shape</Label>
+              <Select value={buttonShape} onValueChange={v => setButtonShape(v as ButtonShape)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rounded">Rounded</SelectItem>
+                  <SelectItem value="pill">Pill</SelectItem>
+                  <SelectItem value="square">Square</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Button fill</Label>
+              <Select value={buttonFill} onValueChange={v => setButtonFill(v as ButtonFill)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="solid">Solid</SelectItem>
+                  <SelectItem value="outline">Outline</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Background */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Background</CardTitle>
+          <CardDescription>Override the theme background with an image or video.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="space-y-2">
+            <Label>Type</Label>
+            <Select value={backgroundType} onValueChange={v => setBackgroundType(v as BackgroundType)}>
+              <SelectTrigger className="w-60"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="theme">Theme default</SelectItem>
+                <SelectItem value="image">Image</SelectItem>
+                <SelectItem value="video">Video</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {backgroundType === 'image' && (
+            <div className="space-y-2">
+              <Label>Background image</Label>
+              <ImageUpload value={backgroundUrl} onChange={v => setBackgroundUrl(v ?? '')} crop="none" maxDim={1280} />
+              <p className="text-xs text-muted-foreground">Upload or paste an image URL. Covers the full screen.</p>
+            </div>
+          )}
+
+          {backgroundType === 'video' && (
+            <div className="space-y-2">
+              <Label htmlFor="bg-video">Video URL (.mp4)</Label>
+              <Input id="bg-video" placeholder="https://…/background.mp4" value={backgroundUrl} onChange={e => setBackgroundUrl(e.target.value)} />
+              <p className="text-xs text-muted-foreground">A direct .mp4 link. It autoplays muted and loops.</p>
+            </div>
+          )}
+
+          {backgroundType !== 'theme' && (
+            <div className="space-y-2">
+              <Label>Darken overlay — {backgroundOverlay}%</Label>
+              <input
+                type="range" min={0} max={80} value={backgroundOverlay}
+                onChange={e => setBackgroundOverlay(Number(e.target.value))}
+                className="w-full max-w-md accent-primary"
+              />
+              <p className="text-xs text-muted-foreground">Adds a dark scrim so text stays readable over busy media.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Custom CSS */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Custom CSS</CardTitle>
+          <CardDescription>Advanced — inject your own CSS. Applies to your public page only.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            value={customCss}
+            onChange={e => setCustomCss(e.target.value)}
+            rows={6}
+            spellCheck={false}
+            placeholder={'.bio-link-card { letter-spacing: 0.02em; }'}
+            className="font-mono text-xs"
+          />
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end">
+        <SaveButton onSave={save} />
+      </div>
     </div>
   )
 }

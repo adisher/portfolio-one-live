@@ -146,6 +146,66 @@ html {
   --cta-border: rgba(255, 255, 255, 0.5);
 }
 
+/* 6. midnight */
+.theme-midnight {
+  --page-bg: linear-gradient(160deg, #020617 0%, #0f2c3f 60%, #052e2b 100%);
+  --card-bg: rgba(255, 255, 255, 0.06);
+  --card-border: rgba(56, 189, 248, 0.18);
+  --card-hover-bg: rgba(255, 255, 255, 0.11);
+  --card-hover-border: rgba(56, 189, 248, 0.45);
+  --text-primary: #e2f2ff;
+  --text-secondary: rgba(226, 242, 255, 0.65);
+  --social-bg: rgba(255, 255, 255, 0.08);
+  --social-hover: rgba(255, 255, 255, 0.16);
+  --cta-bg: rgba(255, 255, 255, 0.06);
+  --cta-border: rgba(56, 189, 248, 0.2);
+}
+
+/* 7. forest */
+.theme-forest {
+  --page-bg: linear-gradient(160deg, #06231a 0%, #0b3d2e 55%, #041d15 100%);
+  --card-bg: rgba(255, 255, 255, 0.06);
+  --card-border: rgba(52, 211, 153, 0.2);
+  --card-hover-bg: rgba(255, 255, 255, 0.11);
+  --card-hover-border: rgba(52, 211, 153, 0.45);
+  --text-primary: #eafff4;
+  --text-secondary: rgba(234, 255, 244, 0.65);
+  --social-bg: rgba(255, 255, 255, 0.08);
+  --social-hover: rgba(255, 255, 255, 0.16);
+  --cta-bg: rgba(255, 255, 255, 0.06);
+  --cta-border: rgba(52, 211, 153, 0.2);
+}
+
+/* 8. rose-quartz */
+.theme-rose-quartz {
+  --page-bg: linear-gradient(160deg, #ffe4ef 0%, #fff1f6 50%, #ffe9f0 100%);
+  --card-bg: #ffffff;
+  --card-border: #f9d0e0;
+  --card-hover-bg: #fff5f9;
+  --card-hover-border: #f4b6cf;
+  --text-primary: #4a1f33;
+  --text-secondary: #9d5878;
+  --social-bg: #fde7f0;
+  --social-hover: #f9d0e0;
+  --cta-bg: #fff5f9;
+  --cta-border: #f9d0e0;
+}
+
+/* 9. mono-dark */
+.theme-mono-dark {
+  --page-bg: #0a0a0a;
+  --card-bg: #161616;
+  --card-border: #262626;
+  --card-hover-bg: #1e1e1e;
+  --card-hover-border: #3a3a3a;
+  --text-primary: #fafafa;
+  --text-secondary: rgba(250, 250, 250, 0.6);
+  --social-bg: #1e1e1e;
+  --social-hover: #2a2a2a;
+  --cta-bg: #161616;
+  --cta-border: #262626;
+}
+
 /* ─── Public page shared styles ────────────────────────────────────────────── */
 .bio-page {
   min-height: 100vh;
@@ -198,4 +258,19 @@ html {
 /* Neon glow on card borders for neon-dark */
 .theme-neon-dark .bio-link-card {
   box-shadow: 0 0 8px rgba(0, 255, 136, 0.08);
+}
+
+/* ─── Button shape & fill (link cards) ─────────────────────────────────────── */
+.bio-link-card.shape-rounded { border-radius: 0.75rem; }
+.bio-link-card.shape-pill    { border-radius: 9999px; }
+.bio-link-card.shape-square  { border-radius: 0.15rem; }
+
+.bio-link-card.fill-outline {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-width: 1.5px;
+}
+.bio-link-card.fill-outline:hover {
+  background: var(--card-hover-bg);
 }

@@ -116,12 +116,42 @@ export function BioPage({ config, themeClass }: BioPageProps) {
     'Playfair Display': "'Playfair Display', serif",
   }
 
+  const hasMediaBg = config.backgroundType !== 'theme' && !!config.backgroundUrl
+  const isGrid = config.linkLayout === 'grid'
+
   return (
     <div
       className={`bio-page ${themeClass}`}
-      style={{ fontFamily: fontMap[config.fontFamily] || "'Inter', sans-serif" }}
+      style={{ fontFamily: fontMap[config.fontFamily] || "'Inter', sans-serif", position: 'relative' }}
     >
-      <div className="max-w-lg mx-auto px-4 py-12 sm:py-16">
+      {/* Owner-authored custom CSS */}
+      {config.customCss && <style dangerouslySetInnerHTML={{ __html: config.customCss }} />}
+
+      {/* Custom background layer (image / video) + readability scrim */}
+      {hasMediaBg && config.backgroundType === 'image' && (
+        <div
+          className="fixed inset-0 z-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${config.backgroundUrl})` }}
+          aria-hidden
+        />
+      )}
+      {hasMediaBg && config.backgroundType === 'video' && (
+        <video
+          className="fixed inset-0 z-0 h-full w-full object-cover"
+          src={config.backgroundUrl}
+          autoPlay muted loop playsInline
+          aria-hidden
+        />
+      )}
+      {hasMediaBg && config.backgroundOverlay > 0 && (
+        <div
+          className="fixed inset-0 z-0"
+          style={{ background: `rgba(0,0,0,${Math.min(80, config.backgroundOverlay) / 100})` }}
+          aria-hidden
+        />
+      )}
+
+      <div className="relative z-10 max-w-lg mx-auto px-4 py-12 sm:py-16">
 
         {/* Avatar */}
         <motion.div
@@ -229,7 +259,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
 
         {/* Content blocks */}
         {config.showLinks && blocks.length > 0 && (
-          <div className="space-y-3 mb-8">
+          <div className={isGrid ? 'grid grid-cols-2 gap-3 mb-8 items-start' : 'space-y-3 mb-8'}>
             {blocks.map((block, i) => {
               const delay = i + 3
 
@@ -237,7 +267,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                 return (
                   <motion.div
                     key={block.id}
-                    className="flex items-center gap-3 pt-7 pb-1 first:pt-1"
+                    className={`flex items-center gap-3 pt-7 pb-1 first:pt-1 ${isGrid ? 'col-span-2' : ''}`}
                     variants={fadeUp} initial="hidden" animate="visible" custom={delay}
                   >
                     <span className="h-px flex-1" style={{ background: 'var(--card-border)' }} />
@@ -258,7 +288,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                 return (
                   <motion.div
                     key={block.id}
-                    className="rounded-xl overflow-hidden"
+                    className={`rounded-xl overflow-hidden ${isGrid ? 'col-span-2' : ''}`}
                     style={{ border: '1px solid var(--card-border)' }}
                     variants={fadeUp} initial="hidden" animate="visible" custom={delay}
                   >
@@ -279,7 +309,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                 return (
                   <motion.div
                     key={block.id}
-                    className="rounded-xl overflow-hidden"
+                    className={`rounded-xl overflow-hidden ${isGrid ? 'col-span-2' : ''}`}
                     variants={fadeUp} initial="hidden" animate="visible" custom={delay}
                   >
                     <iframe
@@ -299,7 +329,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                 return (
                   <motion.div
                     key={block.id}
-                    className="rounded-xl overflow-hidden bg-white"
+                    className={`rounded-xl overflow-hidden bg-white ${isGrid ? 'col-span-2' : ''}`}
                     style={{ border: '1px solid var(--card-border)' }}
                     variants={fadeUp} initial="hidden" animate="visible" custom={delay}
                   >
@@ -316,6 +346,8 @@ export function BioPage({ config, themeClass }: BioPageProps) {
               }
 
               const featured = !!block.featured
+              const gridTile = isGrid && !featured // featured links stay full-width
+              const colSpan = isGrid ? (featured ? 'col-span-2' : 'col-span-1') : ''
               return (
                 <motion.a
                   key={block.id}
@@ -330,8 +362,10 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                       trackLinkClick(block.id)
                     }
                   }}
-                  className={`bio-link-card flex items-center gap-4 rounded-xl w-full ${
-                    featured ? 'px-5 py-5' : 'px-5 py-4'
+                  className={`bio-link-card shape-${config.buttonShape} fill-${config.buttonFill} flex w-full ${colSpan} ${
+                    gridTile
+                      ? 'flex-col items-center text-center gap-2 px-4 py-5'
+                      : `items-center gap-4 px-5 ${featured ? 'py-5' : 'py-4'}`
                   }`}
                   style={featured ? {
                     boxShadow: `0 0 0 1.5px ${config.accentColor || '#6366f1'}, 0 10px 30px -12px ${config.accentColor || '#6366f1'}99`,
@@ -345,7 +379,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                 >
                   {block.thumbnailUrl ? (
                     <div
-                      className="w-11 h-11 rounded-lg overflow-hidden shrink-0"
+                      className={`${gridTile ? 'w-14 h-14' : 'w-11 h-11'} rounded-lg overflow-hidden shrink-0`}
                       style={{
                         background: block.thumbBgColor || undefined,
                         border: block.thumbBorderColor
@@ -359,19 +393,19 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                     </div>
                   ) : (
                     <span
-                      className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                      className={`${gridTile ? 'w-11 h-11' : 'w-9 h-9'} rounded-lg flex items-center justify-center shrink-0`}
                       style={{ background: 'var(--social-bg)' }}
                     >
                       <DynamicIcon name={block.icon || 'Link'} className="h-5 w-5" style={{ color: 'var(--text-primary)' }} />
                     </span>
                   )}
                   <span
-                    className={`flex-1 text-left ${featured ? 'font-semibold text-lg' : 'font-medium'}`}
+                    className={`${gridTile ? 'text-center text-sm' : 'flex-1 text-left'} ${featured ? 'font-semibold text-lg' : 'font-medium'}`}
                     style={{ color: 'var(--text-primary)' }}
                   >
                     {block.title}
                   </span>
-                  <ExternalLink className="h-4 w-4 shrink-0 bio-text-secondary" />
+                  {!gridTile && <ExternalLink className="h-4 w-4 shrink-0 bio-text-secondary" />}
                 </motion.a>
               )
             })}

@@ -68,6 +68,50 @@ export const THEMES: ThemeDefinition[] = [
       accent: '#f5576c',
     },
   },
+  {
+    name: 'midnight',
+    label: 'Midnight',
+    description: 'Deep navy and teal with cool blue accents',
+    preview: {
+      bg: 'linear-gradient(160deg, #020617, #0f2c3f, #052e2b)',
+      card: 'rgba(255,255,255,0.06)',
+      text: '#e2f2ff',
+      accent: '#38bdf8',
+    },
+  },
+  {
+    name: 'forest',
+    label: 'Forest',
+    description: 'Deep greens with a calm, natural mood',
+    preview: {
+      bg: 'linear-gradient(160deg, #06231a, #0b3d2e, #041d15)',
+      card: 'rgba(255,255,255,0.06)',
+      text: '#eafff4',
+      accent: '#34d399',
+    },
+  },
+  {
+    name: 'rose-quartz',
+    label: 'Rose Quartz',
+    description: 'Soft blush pinks, light and elegant',
+    preview: {
+      bg: 'linear-gradient(160deg, #ffe4ef, #fff1f6, #ffe9f0)',
+      card: '#ffffff',
+      text: '#4a1f33',
+      accent: '#ec4899',
+    },
+  },
+  {
+    name: 'mono-dark',
+    label: 'Mono Dark',
+    description: 'Pure minimal dark — no gradient, just contrast',
+    preview: {
+      bg: '#0a0a0a',
+      card: '#161616',
+      text: '#fafafa',
+      accent: '#a3a3a3',
+    },
+  },
 ]
 
 export function getTheme(name: ThemeName): ThemeDefinition {

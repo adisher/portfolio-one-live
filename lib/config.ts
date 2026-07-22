@@ -61,6 +61,15 @@ export type ThemeName =
   | 'glassmorphism'
   | 'neon-dark'
   | 'warm-gradient'
+  | 'midnight'
+  | 'forest'
+  | 'rose-quartz'
+  | 'mono-dark'
+
+export type LinkLayout = 'list' | 'grid'
+export type ButtonShape = 'rounded' | 'pill' | 'square'
+export type ButtonFill = 'solid' | 'outline'
+export type BackgroundType = 'theme' | 'image' | 'video'
 
 export interface SiteConfig {
   name: string
@@ -78,6 +87,13 @@ export interface SiteConfig {
   theme: ThemeName
   accentColor: string
   fontFamily: string
+  customCss: string
+  backgroundType: BackgroundType
+  backgroundUrl: string
+  backgroundOverlay: number // 0–80: dark scrim over image/video for readability
+  linkLayout: LinkLayout
+  buttonShape: ButtonShape
+  buttonFill: ButtonFill
   showLinks: boolean
   showSocials: boolean
   showVideo: boolean
@@ -122,6 +138,13 @@ export const DEFAULT_CONFIG: SiteConfig = {
   theme: 'dark-gradient',
   accentColor: '#6366f1',
   fontFamily: 'Inter',
+  customCss: '',
+  backgroundType: 'theme',
+  backgroundUrl: '',
+  backgroundOverlay: 0,
+  linkLayout: 'list',
+  buttonShape: 'rounded',
+  buttonFill: 'solid',
   showLinks: true,
   showSocials: true,
   showVideo: false,
