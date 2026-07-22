@@ -18,8 +18,8 @@ import { Switch } from '@/components/ui/switch'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { SaveButton } from '@/components/admin/SaveButton'
 import { IconPicker, DynamicIcon } from '@/components/admin/IconPicker'
-import type { SiteConfig, LinkItem } from '@/lib/config'
-import { GripVertical, Pencil, Trash2, Plus } from 'lucide-react'
+import { type SiteConfig, type ContentBlock, deriveContent } from '@/lib/config'
+import { GripVertical, Pencil, Trash2, Plus, Star, Clock, ShieldAlert } from 'lucide-react'
 
 interface LinksEditorProps {
   config: SiteConfig
@@ -30,8 +30,8 @@ function generateId(): string {
 }
 
 interface SortableLinkRowProps {
-  link: LinkItem
-  onEdit: (link: LinkItem) => void
+  link: ContentBlock
+  onEdit: (link: ContentBlock) => void
   onDelete: (id: string) => void
   onToggle: (id: string, enabled: boolean) => void
 }
@@ -60,10 +60,20 @@ function SortableLinkRow({ link, onEdit, onDelete, onToggle }: SortableLinkRowPr
         <GripVertical className="h-5 w-5" />
       </button>
 
-      <DynamicIcon name={link.icon} className="h-5 w-5 shrink-0 text-muted-foreground" />
+      {link.thumbnailUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={link.thumbnailUrl} alt="" className="h-8 w-8 rounded object-cover shrink-0" />
+      ) : (
+        <DynamicIcon name={link.icon || 'Link'} className="h-5 w-5 shrink-0 text-muted-foreground" />
+      )}
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{link.title || 'Untitled'}</p>
+        <p className="text-sm font-medium truncate flex items-center gap-1.5">
+          {link.title || 'Untitled'}
+          {link.featured && <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 shrink-0" />}
+          {(link.startAt || link.endAt) && <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+          {link.ageGate && <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+        </p>
         <p className="text-xs text-muted-foreground truncate">{link.url || 'No URL'}</p>
       </div>
 
@@ -88,21 +98,45 @@ function SortableLinkRow({ link, onEdit, onDelete, onToggle }: SortableLinkRowPr
 }
 
 interface EditDialogProps {
-  link: LinkItem | null
+  link: ContentBlock | null
   open: boolean
   onClose: () => void
-  onSave: (link: LinkItem) => void
+  onSave: (link: ContentBlock) => void
+}
+
+// datetime-local wants "YYYY-MM-DDTHH:mm"; ISO strings include seconds/zone.
+function toLocalInput(iso?: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+function fromLocalInput(v: string): string | undefined {
+  if (!v) return undefined
+  const d = new Date(v)
+  return isNaN(d.getTime()) ? undefined : d.toISOString()
 }
 
 function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
   const [title, setTitle] = useState(link?.title ?? '')
   const [url, setUrl] = useState(link?.url ?? '')
   const [icon, setIcon] = useState(link?.icon ?? 'Link')
+  const [thumbnailUrl, setThumbnailUrl] = useState(link?.thumbnailUrl ?? '')
+  const [featured, setFeatured] = useState(!!link?.featured)
+  const [startAt, setStartAt] = useState(toLocalInput(link?.startAt))
+  const [endAt, setEndAt] = useState(toLocalInput(link?.endAt))
+  const [ageGate, setAgeGate] = useState(!!link?.ageGate)
 
-  const reset = useCallback((l: LinkItem | null) => {
+  const reset = useCallback((l: ContentBlock | null) => {
     setTitle(l?.title ?? '')
     setUrl(l?.url ?? '')
     setIcon(l?.icon ?? 'Link')
+    setThumbnailUrl(l?.thumbnailUrl ?? '')
+    setFeatured(!!l?.featured)
+    setStartAt(toLocalInput(l?.startAt))
+    setEndAt(toLocalInput(l?.endAt))
+    setAgeGate(!!l?.ageGate)
   }, [])
 
   function handleOpenChange(o: boolean) {
@@ -112,7 +146,17 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
 
   function handleSave() {
     if (!link) return
-    onSave({ ...link, title, url, icon })
+    onSave({
+      ...link,
+      title,
+      url,
+      icon,
+      thumbnailUrl: thumbnailUrl || undefined,
+      featured: featured || undefined,
+      startAt: fromLocalInput(startAt),
+      endAt: fromLocalInput(endAt),
+      ageGate: ageGate || undefined,
+    })
   }
 
   return (
@@ -121,7 +165,7 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
         <DialogHeader>
           <DialogTitle>{link && links_isNew(link) ? 'Add Link' : 'Edit Link'}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-2">
+        <div className="space-y-4 py-2 max-h-[70vh] overflow-y-auto">
           <div className="space-y-1">
             <Label htmlFor="link-title">Title</Label>
             <Input id="link-title" placeholder="My Website" value={title} onChange={e => setTitle(e.target.value)} />
@@ -134,6 +178,51 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
             <Label>Icon</Label>
             <IconPicker value={icon} onChange={setIcon} />
           </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="link-thumb">Thumbnail image URL <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <Input id="link-thumb" placeholder="https://…/image.jpg" value={thumbnailUrl} onChange={e => setThumbnailUrl(e.target.value)} />
+            <p className="text-xs text-muted-foreground">Shown instead of the icon on the button.</p>
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-amber-500" />
+              <div>
+                <p className="text-sm font-medium">Featured</p>
+                <p className="text-xs text-muted-foreground">Highlight as a hero button.</p>
+              </div>
+            </div>
+            <Switch checked={featured} onCheckedChange={setFeatured} />
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Age gate (18+)</p>
+                <p className="text-xs text-muted-foreground">Ask for confirmation before opening.</p>
+              </div>
+            </div>
+            <Switch checked={ageGate} onCheckedChange={setAgeGate} />
+          </div>
+
+          <div className="space-y-2 rounded-lg border border-border p-3">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm font-medium">Schedule <span className="text-muted-foreground font-normal">(optional)</span></p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="link-start" className="text-xs">Show from</Label>
+                <Input id="link-start" type="datetime-local" value={startAt} onChange={e => setStartAt(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="link-end" className="text-xs">Hide after</Label>
+                <Input id="link-end" type="datetime-local" value={endAt} onChange={e => setEndAt(e.target.value)} />
+              </div>
+            </div>
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
@@ -145,13 +234,14 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
 }
 
 // Helper to check if a link is brand-new (not yet in the list)
-function links_isNew(link: LinkItem) { return !link.title && !link.url }
+function links_isNew(link: ContentBlock) { return !link.title && !link.url }
 
 export function LinksEditor({ config }: LinksEditorProps) {
-  const [links, setLinks] = useState<LinkItem[]>(
-    [...config.links].sort((a, b) => a.order - b.order)
+  // Seed from the unified content model (falls back to legacy links).
+  const [links, setLinks] = useState<ContentBlock[]>(
+    deriveContent(config).filter(b => b.type === 'link')
   )
-  const [editingLink, setEditingLink] = useState<LinkItem | null>(null)
+  const [editingLink, setEditingLink] = useState<ContentBlock | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const sensors = useSensors(
@@ -170,17 +260,17 @@ export function LinksEditor({ config }: LinksEditorProps) {
     }
   }
 
-  function handleEdit(link: LinkItem) {
+  function handleEdit(link: ContentBlock) {
     setEditingLink({ ...link })
     setDialogOpen(true)
   }
 
   function handleAddNew() {
-    setEditingLink({ id: generateId(), title: '', url: '', icon: 'Link', enabled: true, order: links.length })
+    setEditingLink({ id: generateId(), type: 'link', title: '', url: '', icon: 'Link', enabled: true, order: links.length })
     setDialogOpen(true)
   }
 
-  function handleDialogSave(updated: LinkItem) {
+  function handleDialogSave(updated: ContentBlock) {
     setLinks(prev => {
       const exists = prev.find(l => l.id === updated.id)
       return exists
@@ -200,10 +290,13 @@ export function LinksEditor({ config }: LinksEditorProps) {
   }
 
   async function handleSave() {
+    // Persist to the unified content array (source of truth going forward) and
+    // clear the legacy `links` so deriveContent never resurrects deleted links.
+    const content: ContentBlock[] = links.map((l, i) => ({ ...l, type: 'link', order: i }))
     const res = await fetch('/api/admin/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ links }),
+      body: JSON.stringify({ content, links: [] }),
     })
     if (!res.ok) throw new Error('Save failed')
   }

@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { SiteConfig } from '@/lib/config'
+import { SiteConfig, ContentBlock, deriveContent, isBlockLive } from '@/lib/config'
 import { DynamicIcon } from '@/components/admin/IconPicker'
 import {
   Github, Twitter, Linkedin, Instagram, Youtube, Mail,
@@ -71,13 +71,14 @@ const socialIconMap: Record<string, React.ElementType> = {
 }
 
 export function BioPage({ config, themeClass }: BioPageProps) {
+  const [ageGateBlock, setAgeGateBlock] = useState<ContentBlock | null>(null)
+
   useEffect(() => {
     trackPageView()
   }, [])
 
-  const enabledLinks = config.links
-    .filter(l => l.enabled)
-    .sort((a, b) => a.order - b.order)
+  // Unified content list: enabled blocks that are within their schedule window.
+  const blocks = deriveContent(config).filter(b => b.enabled && isBlockLive(b))
 
   const socialEntries = Object.entries(config.socials) as [keyof typeof config.socials, string][]
 
@@ -184,36 +185,61 @@ export function BioPage({ config, themeClass }: BioPageProps) {
           </motion.div>
         )}
 
-        {/* Links */}
-        {config.showLinks && enabledLinks.length > 0 && (
+        {/* Content blocks */}
+        {config.showLinks && blocks.length > 0 && (
           <div className="space-y-3 mb-8">
-            {enabledLinks.map((link, i) => (
-              <motion.a
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackLinkClick(link.id)}
-                className="bio-link-card flex items-center gap-4 px-5 py-4 rounded-xl w-full"
-                variants={fadeUp}
-                initial="hidden"
-                animate="visible"
-                custom={i + 3}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <span
-                  className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: 'var(--social-bg)' }}
+            {blocks.map((block, i) => {
+              if (block.type !== 'link') return null // header/video/music/embed land in G2
+              const featured = !!block.featured
+              return (
+                <motion.a
+                  key={block.id}
+                  href={block.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={e => {
+                    if (block.ageGate) {
+                      e.preventDefault()
+                      setAgeGateBlock(block)
+                    } else {
+                      trackLinkClick(block.id)
+                    }
+                  }}
+                  className={`bio-link-card flex items-center gap-4 rounded-xl w-full ${
+                    featured ? 'px-5 py-5' : 'px-5 py-4'
+                  }`}
+                  style={featured ? { boxShadow: `0 0 0 2px ${config.accentColor || '#6366f1'}` } : undefined}
+                  variants={fadeUp}
+                  initial="hidden"
+                  animate="visible"
+                  custom={i + 3}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <DynamicIcon name={link.icon} className="h-5 w-5" style={{ color: 'var(--text-primary)' }} />
-                </span>
-                <span className="flex-1 font-medium text-left" style={{ color: 'var(--text-primary)' }}>
-                  {link.title}
-                </span>
-                <ExternalLink className="h-4 w-4 shrink-0 bio-text-secondary" />
-              </motion.a>
-            ))}
+                  {block.thumbnailUrl ? (
+                    <img
+                      src={block.thumbnailUrl}
+                      alt=""
+                      className="w-11 h-11 rounded-lg object-cover shrink-0"
+                    />
+                  ) : (
+                    <span
+                      className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ background: 'var(--social-bg)' }}
+                    >
+                      <DynamicIcon name={block.icon || 'Link'} className="h-5 w-5" style={{ color: 'var(--text-primary)' }} />
+                    </span>
+                  )}
+                  <span
+                    className={`flex-1 text-left ${featured ? 'font-semibold text-lg' : 'font-medium'}`}
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    {block.title}
+                  </span>
+                  <ExternalLink className="h-4 w-4 shrink-0 bio-text-secondary" />
+                </motion.a>
+              )
+            })}
           </div>
         )}
 
@@ -225,7 +251,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            custom={enabledLinks.length + 3}
+            custom={blocks.length + 3}
           >
             <iframe
               src={getYouTubeEmbedUrl(config.videoUrl)}
@@ -244,7 +270,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            custom={enabledLinks.length + 4}
+            custom={blocks.length + 4}
           >
             {config.ctaBadgeText && (
               <span
@@ -281,6 +307,45 @@ export function BioPage({ config, themeClass }: BioPageProps) {
         )}
 
       </div>
+
+      {/* Age-gate confirmation */}
+      {ageGateBlock && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setAgeGateBlock(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-6 text-center"
+            style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-primary)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold mb-2">Age Confirmation</h3>
+            <p className="text-sm bio-text-secondary mb-5">
+              This content is intended for adults. Are you 18 or older?
+            </p>
+            <div className="flex gap-3">
+              <button
+                className="flex-1 py-2.5 rounded-xl font-medium"
+                style={{ background: 'var(--social-bg)', color: 'var(--text-primary)' }}
+                onClick={() => setAgeGateBlock(null)}
+              >
+                No, exit
+              </button>
+              <button
+                className="flex-1 py-2.5 rounded-xl font-semibold text-white"
+                style={{ background: config.accentColor || '#6366f1' }}
+                onClick={() => {
+                  trackLinkClick(ageGateBlock.id)
+                  if (ageGateBlock.url) window.open(ageGateBlock.url, '_blank', 'noopener,noreferrer')
+                  setAgeGateBlock(null)
+                }}
+              >
+                Yes, I&apos;m 18+
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

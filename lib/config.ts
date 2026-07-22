@@ -7,6 +7,32 @@ export interface LinkItem {
   order: number
 }
 
+// ─── Unified content model (G1) ──────────────────────────────────────────────
+// The page body is a single ordered list of typed blocks. In G1 only 'link'
+// blocks exist; G2 adds header/video/music/embed. Legacy `links` are read as
+// link blocks via deriveContent() for backward compatibility.
+export type BlockType = 'link' | 'header' | 'video' | 'music' | 'embed'
+
+export interface ContentBlock {
+  id: string
+  type: BlockType
+  order: number
+  enabled: boolean
+  // link fields
+  title?: string
+  url?: string
+  icon?: string
+  thumbnailUrl?: string
+  featured?: boolean
+  startAt?: string // ISO datetime — block hidden before this
+  endAt?: string   // ISO datetime — block hidden after this
+  ageGate?: boolean
+  // header field
+  text?: string
+  // video / music / embed field
+  embedUrl?: string
+}
+
 export interface SocialLinks {
   github: string
   twitter: string
@@ -38,6 +64,7 @@ export interface SiteConfig {
   bio: string
   avatarUrl: string
   links: LinkItem[]
+  content: ContentBlock[]
   socials: SocialLinks
   socialVisibility: SocialVisibility
   theme: ThemeName
@@ -63,6 +90,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   bio: 'Write a short bio about yourself here.',
   avatarUrl: '',
   links: [],
+  content: [],
   socials: {
     github: '',
     twitter: '',
@@ -94,6 +122,33 @@ export const DEFAULT_CONFIG: SiteConfig = {
   seoTitle: 'Your Name',
   seoDescription: 'Check out my links and connect with me.',
   ogImageUrl: '',
+}
+
+// Source of truth for the page body. Once the content editor has saved, use
+// `content`; otherwise derive link blocks from the legacy `links` array so
+// existing sites keep working with zero migration.
+export function deriveContent(config: SiteConfig): ContentBlock[] {
+  if (config.content && config.content.length > 0) {
+    return [...config.content].sort((a, b) => a.order - b.order)
+  }
+  return [...(config.links ?? [])]
+    .sort((a, b) => a.order - b.order)
+    .map(l => ({
+      id: l.id,
+      type: 'link' as const,
+      order: l.order,
+      enabled: l.enabled,
+      title: l.title,
+      url: l.url,
+      icon: l.icon,
+    }))
+}
+
+// True when a scheduled block should be visible right now.
+export function isBlockLive(block: ContentBlock, now: number = Date.now()): boolean {
+  if (block.startAt && now < new Date(block.startAt).getTime()) return false
+  if (block.endAt && now > new Date(block.endAt).getTime()) return false
+  return true
 }
 
 export const REDIS_KEYS = {

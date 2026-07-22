@@ -7,7 +7,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts'
 import type { AnalyticsData } from '@/lib/redis'
-import type { SiteConfig } from '@/lib/config'
+import { type SiteConfig, deriveContent } from '@/lib/config'
 import { Eye, Globe, ExternalLink, Link2 } from 'lucide-react'
 
 interface DashboardClientProps {
@@ -44,9 +44,11 @@ export function DashboardClient({ analytics, config }: DashboardClientProps) {
   // Resolve link titles from config
   const linkTitleMap = useMemo(() => {
     const map: Record<string, string> = {}
-    for (const l of config.links) map[l.id] = l.title || l.id
+    for (const b of deriveContent(config)) {
+      if (b.type === 'link') map[b.id] = b.title || b.id
+    }
     return map
-  }, [config.links])
+  }, [config])
 
   const topCountry = topCountries[0]
     ? `${countryToFlag(topCountries[0].country)} ${topCountries[0].country}`
