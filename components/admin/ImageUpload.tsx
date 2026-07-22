@@ -15,6 +15,10 @@ interface ImageUploadProps {
   crop?: 'square' | 'none'
   /** Also offer a "paste image URL" field alongside upload. Default true. */
   allowUrl?: boolean
+  /** Reflect a chosen background fill on the preview swatch. */
+  previewBg?: string
+  /** Reflect a chosen border (CSS border shorthand) on the preview swatch. */
+  previewBorder?: string
 }
 
 // Resize + compress in the browser so we can store the image inline in the
@@ -82,7 +86,7 @@ async function processImage(
   return canvas.toDataURL('image/webp', quality)
 }
 
-export function ImageUpload({ value, onChange, maxDim = 256, shape = 'square', crop = 'square', allowUrl = true }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, maxDim = 256, shape = 'square', crop = 'square', allowUrl = true, previewBg, previewBorder }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -116,7 +120,10 @@ export function ImageUpload({ value, onChange, maxDim = 256, shape = 'square', c
     <div className="space-y-2">
       <div className="flex items-center gap-3">
         <div
-          className={`h-14 w-14 shrink-0 overflow-hidden border border-border bg-muted flex items-center justify-center ${rounded}`}
+          className={`h-14 w-14 shrink-0 overflow-hidden flex items-center justify-center ${rounded} ${
+            previewBorder ? '' : 'border border-border'
+          } ${previewBg ? '' : 'bg-muted'}`}
+          style={{ background: previewBg || undefined, border: previewBorder || undefined, boxSizing: 'border-box' }}
         >
           {value ? (
             // eslint-disable-next-line @next/next/no-img-element

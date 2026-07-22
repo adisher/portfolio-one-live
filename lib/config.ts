@@ -63,6 +63,9 @@ export interface SiteConfig {
   tagline: string
   bio: string
   avatarUrl: string
+  avatarBgColor: string      // fill behind the avatar (shows through transparency); '' = none
+  avatarBorderColor: string  // border ring color; '' = none
+  avatarBorderWidth: number  // border width in px
   links: LinkItem[]
   content: ContentBlock[]
   socials: SocialLinks
@@ -89,6 +92,9 @@ export const DEFAULT_CONFIG: SiteConfig = {
   tagline: 'Your Tagline Here',
   bio: 'Write a short bio about yourself here.',
   avatarUrl: '',
+  avatarBgColor: '',
+  avatarBorderColor: '',
+  avatarBorderWidth: 4,
   links: [],
   content: [],
   socials: {

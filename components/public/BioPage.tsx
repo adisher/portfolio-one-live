@@ -109,13 +109,26 @@ export function BioPage({ config, themeClass }: BioPageProps) {
         >
           <div className="relative">
             {config.avatarUrl ? (
-              <Image
-                src={config.avatarUrl}
-                alt={config.name}
-                width={96}
-                height={96}
-                className="rounded-full object-cover ring-4 ring-white/20"
-              />
+              <div
+                className={`relative w-24 h-24 rounded-full overflow-hidden ${
+                  config.avatarBorderColor ? '' : 'ring-4 ring-white/20'
+                }`}
+                style={{
+                  background: config.avatarBgColor || undefined,
+                  border: config.avatarBorderColor
+                    ? `${config.avatarBorderWidth || 4}px solid ${config.avatarBorderColor}`
+                    : undefined,
+                  boxSizing: 'border-box',
+                }}
+              >
+                <Image
+                  src={config.avatarUrl}
+                  alt={config.name}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
             ) : (
               <div
                 className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold"
