@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor,
   useSensor, useSensors, DragEndEvent,
@@ -139,9 +139,14 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
     setAgeGate(!!l?.ageGate)
   }, [])
 
+  // Sync fields whenever the dialog opens (programmatic open doesn't fire
+  // Radix's onOpenChange, so we can't rely on that to seed the form).
+  useEffect(() => {
+    if (open) reset(link)
+  }, [open, link, reset])
+
   function handleOpenChange(o: boolean) {
-    if (!o) { onClose(); return }
-    reset(link)
+    if (!o) onClose()
   }
 
   function handleSave() {
