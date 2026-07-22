@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Upload, X, Loader2, ImageIcon } from 'lucide-react'
 
 interface ImageUploadProps {
@@ -10,6 +11,8 @@ interface ImageUploadProps {
   /** Longest edge the image is resized down to before storing. */
   maxDim?: number
   shape?: 'square' | 'circle'
+  /** Also offer a "paste image URL" field alongside upload. Default true. */
+  allowUrl?: boolean
 }
 
 // Resize + compress in the browser so we can store the image inline in the
@@ -50,10 +53,14 @@ async function fileToResizedDataUrl(file: File, maxDim: number, quality = 0.82):
   return canvas.toDataURL('image/jpeg', quality)
 }
 
-export function ImageUpload({ value, onChange, maxDim = 256, shape = 'square' }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, maxDim = 256, shape = 'square', allowUrl = true }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  // Show the URL field's text only when the value is an external URL, not an
+  // uploaded data URI (which would be a huge unreadable string in the input).
+  const urlFieldValue = value && !value.startsWith('data:') ? value : ''
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -111,6 +118,16 @@ export function ImageUpload({ value, onChange, maxDim = 256, shape = 'square' }:
           onChange={handleFile}
         />
       </div>
+
+      {allowUrl && (
+        <Input
+          type="url"
+          placeholder="…or paste an image URL"
+          value={urlFieldValue}
+          onChange={e => { setError(''); onChange(e.target.value || undefined) }}
+        />
+      )}
+
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
