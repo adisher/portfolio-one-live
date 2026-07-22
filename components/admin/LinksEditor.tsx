@@ -129,6 +129,7 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
   const [thumbBorderEnabled, setThumbBorderEnabled] = useState(!!link?.thumbBorderColor)
   const [thumbBorderColor, setThumbBorderColor] = useState(link?.thumbBorderColor || '#6366f1')
   const [thumbBorderWidth, setThumbBorderWidth] = useState(link?.thumbBorderWidth || 2)
+  const [thumbPadding, setThumbPadding] = useState(link?.thumbPadding ?? 4)
   const [featured, setFeatured] = useState(!!link?.featured)
   const [startAt, setStartAt] = useState(toLocalInput(link?.startAt))
   const [endAt, setEndAt] = useState(toLocalInput(link?.endAt))
@@ -144,6 +145,7 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
     setThumbBorderEnabled(!!l?.thumbBorderColor)
     setThumbBorderColor(l?.thumbBorderColor || '#6366f1')
     setThumbBorderWidth(l?.thumbBorderWidth || 2)
+    setThumbPadding(l?.thumbPadding ?? 4)
     setFeatured(!!l?.featured)
     setStartAt(toLocalInput(l?.startAt))
     setEndAt(toLocalInput(l?.endAt))
@@ -171,6 +173,7 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
       thumbBgColor: thumbBgEnabled ? thumbBgColor : undefined,
       thumbBorderColor: thumbBorderEnabled ? thumbBorderColor : undefined,
       thumbBorderWidth: thumbBorderWidth,
+      thumbPadding: (thumbBgEnabled || thumbBorderEnabled) ? thumbPadding : undefined,
       featured: featured || undefined,
       startAt: fromLocalInput(startAt),
       endAt: fromLocalInput(endAt),
@@ -178,8 +181,10 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
     })
   }
 
+  const thumbFramed = thumbBgEnabled || thumbBorderEnabled
   const thumbPreviewBg = thumbBgEnabled ? thumbBgColor : undefined
   const thumbPreviewBorder = thumbBorderEnabled ? `${thumbBorderWidth}px solid ${thumbBorderColor}` : undefined
+  const thumbPreviewPadding = thumbFramed ? thumbPadding : undefined
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -209,6 +214,7 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
               maxDim={256}
               previewBg={thumbPreviewBg}
               previewBorder={thumbPreviewBorder}
+              previewPadding={thumbPreviewPadding}
             />
             <p className="text-xs text-muted-foreground">Shown instead of the icon on the button.</p>
 
@@ -265,6 +271,27 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
                   <Switch checked={thumbBorderEnabled} onCheckedChange={setThumbBorderEnabled} />
                 </div>
               </div>
+
+              {thumbFramed && (
+                <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+                  <div>
+                    <p className="text-sm font-medium">Image padding</p>
+                    <p className="text-xs text-muted-foreground">Inset so the background/border shows around the image.</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={16}
+                      aria-label="Thumbnail image padding"
+                      value={thumbPadding}
+                      onChange={e => setThumbPadding(Math.max(0, Math.min(16, Number(e.target.value) || 0)))}
+                      className="h-9 w-16"
+                    />
+                    <span className="text-xs text-muted-foreground">px</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -110,7 +110,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
           <div className="relative">
             {config.avatarUrl ? (
               <div
-                className={`relative w-24 h-24 rounded-full overflow-hidden ${
+                className={`w-24 h-24 rounded-full overflow-hidden ${
                   config.avatarBorderColor ? '' : 'ring-4 ring-white/20'
                 }`}
                 style={{
@@ -118,16 +118,19 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                   border: config.avatarBorderColor
                     ? `${config.avatarBorderWidth || 4}px solid ${config.avatarBorderColor}`
                     : undefined,
+                  padding: (config.avatarBgColor || config.avatarBorderColor) ? (config.avatarPadding || 0) : 0,
                   boxSizing: 'border-box',
                 }}
               >
-                <Image
-                  src={config.avatarUrl}
-                  alt={config.name}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
+                <div className="relative w-full h-full rounded-full overflow-hidden">
+                  <Image
+                    src={config.avatarUrl}
+                    alt={config.name}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
               </div>
             ) : (
               <div
@@ -240,10 +243,11 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                         border: block.thumbBorderColor
                           ? `${block.thumbBorderWidth || 2}px solid ${block.thumbBorderColor}`
                           : undefined,
+                        padding: (block.thumbBgColor || block.thumbBorderColor) ? (block.thumbPadding ?? 0) : 0,
                         boxSizing: 'border-box',
                       }}
                     >
-                      <img src={block.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                      <img src={block.thumbnailUrl} alt="" className="w-full h-full object-cover rounded-md" />
                     </div>
                   ) : (
                     <span

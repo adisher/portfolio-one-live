@@ -26,6 +26,7 @@ export interface ContentBlock {
   thumbBgColor?: string      // fill behind the thumbnail; '' / undefined = none
   thumbBorderColor?: string  // thumbnail border color; '' / undefined = none
   thumbBorderWidth?: number  // thumbnail border width in px
+  thumbPadding?: number      // inset between the image and the frame; px
   featured?: boolean
   startAt?: string // ISO datetime — block hidden before this
   endAt?: string   // ISO datetime — block hidden after this
@@ -69,6 +70,7 @@ export interface SiteConfig {
   avatarBgColor: string      // fill behind the avatar (shows through transparency); '' = none
   avatarBorderColor: string  // border ring color; '' = none
   avatarBorderWidth: number  // border width in px
+  avatarPadding: number      // inset between the image and the frame (reveals background); px
   links: LinkItem[]
   content: ContentBlock[]
   socials: SocialLinks
@@ -98,6 +100,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   avatarBgColor: '',
   avatarBorderColor: '',
   avatarBorderWidth: 4,
+  avatarPadding: 0,
   links: [],
   content: [],
   socials: {

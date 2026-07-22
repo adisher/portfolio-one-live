@@ -19,6 +19,8 @@ interface ImageUploadProps {
   previewBg?: string
   /** Reflect a chosen border (CSS border shorthand) on the preview swatch. */
   previewBorder?: string
+  /** Reflect a chosen inner padding (px) on the preview swatch. */
+  previewPadding?: number
 }
 
 // Resize + compress in the browser so we can store the image inline in the
@@ -86,7 +88,7 @@ async function processImage(
   return canvas.toDataURL('image/webp', quality)
 }
 
-export function ImageUpload({ value, onChange, maxDim = 256, shape = 'square', crop = 'square', allowUrl = true, previewBg, previewBorder }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, maxDim = 256, shape = 'square', crop = 'square', allowUrl = true, previewBg, previewBorder, previewPadding }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -123,11 +125,13 @@ export function ImageUpload({ value, onChange, maxDim = 256, shape = 'square', c
           className={`h-14 w-14 shrink-0 overflow-hidden flex items-center justify-center ${rounded} ${
             previewBorder ? '' : 'border border-border'
           } ${previewBg ? '' : 'bg-muted'}`}
-          style={{ background: previewBg || undefined, border: previewBorder || undefined, boxSizing: 'border-box' }}
+          style={{ background: previewBg || undefined, border: previewBorder || undefined, padding: previewPadding || undefined, boxSizing: 'border-box' }}
         >
           {value ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={value} alt="" className="h-full w-full object-cover" />
+            <div className={`h-full w-full overflow-hidden ${rounded}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={value} alt="" className="h-full w-full object-cover" />
+            </div>
           ) : (
             <ImageIcon className="h-5 w-5 text-muted-foreground" />
           )}

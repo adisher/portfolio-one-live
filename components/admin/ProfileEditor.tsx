@@ -24,9 +24,12 @@ export function ProfileEditor({ config }: ProfileEditorProps) {
   const [borderEnabled, setBorderEnabled] = useState(!!config.avatarBorderColor)
   const [borderColor, setBorderColor] = useState(config.avatarBorderColor || config.accentColor || '#6366f1')
   const [borderWidth, setBorderWidth] = useState(config.avatarBorderWidth || 4)
+  const [padding, setPadding] = useState(config.avatarPadding || 6)
 
+  const framed = bgEnabled || borderEnabled
   const previewBg = bgEnabled ? bgColor : undefined
   const previewBorder = borderEnabled ? `${borderWidth}px solid ${borderColor}` : undefined
+  const previewPadding = framed ? padding : undefined
 
   async function save() {
     const res = await fetch('/api/admin/config', {
@@ -37,6 +40,7 @@ export function ProfileEditor({ config }: ProfileEditorProps) {
         avatarBgColor: bgEnabled ? bgColor : '',
         avatarBorderColor: borderEnabled ? borderColor : '',
         avatarBorderWidth: borderWidth,
+        avatarPadding: framed ? padding : 0,
       }),
     })
     if (!res.ok) throw new Error('Save failed')
@@ -59,6 +63,7 @@ export function ProfileEditor({ config }: ProfileEditorProps) {
             maxDim={400}
             previewBg={previewBg}
             previewBorder={previewBorder}
+            previewPadding={previewPadding}
           />
           <p className="text-xs text-muted-foreground">
             Upload a photo or paste any image URL (GitHub avatar, Gravatar, CDN link…). Transparent PNGs keep their transparency.
@@ -119,6 +124,28 @@ export function ProfileEditor({ config }: ProfileEditorProps) {
                 <Switch checked={borderEnabled} onCheckedChange={setBorderEnabled} />
               </div>
             </div>
+
+            {/* Padding — breathing room between image and frame */}
+            {framed && (
+              <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+                <div>
+                  <p className="text-sm font-medium">Image padding</p>
+                  <p className="text-xs text-muted-foreground">Inset so the background/border shows around the image.</p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={24}
+                    aria-label="Image padding"
+                    value={padding}
+                    onChange={e => setPadding(Math.max(0, Math.min(24, Number(e.target.value) || 0)))}
+                    className="h-9 w-16"
+                  />
+                  <span className="text-xs text-muted-foreground">px</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
