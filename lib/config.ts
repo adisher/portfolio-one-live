@@ -23,6 +23,9 @@ export interface ContentBlock {
   url?: string
   icon?: string
   thumbnailUrl?: string
+  thumbBgColor?: string      // fill behind the thumbnail; '' / undefined = none
+  thumbBorderColor?: string  // thumbnail border color; '' / undefined = none
+  thumbBorderWidth?: number  // thumbnail border width in px
   featured?: boolean
   startAt?: string // ISO datetime — block hidden before this
   endAt?: string   // ISO datetime — block hidden after this

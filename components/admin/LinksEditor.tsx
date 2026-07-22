@@ -124,6 +124,11 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
   const [url, setUrl] = useState(link?.url ?? '')
   const [icon, setIcon] = useState(link?.icon ?? 'Link')
   const [thumbnailUrl, setThumbnailUrl] = useState(link?.thumbnailUrl ?? '')
+  const [thumbBgEnabled, setThumbBgEnabled] = useState(!!link?.thumbBgColor)
+  const [thumbBgColor, setThumbBgColor] = useState(link?.thumbBgColor || '#ffffff')
+  const [thumbBorderEnabled, setThumbBorderEnabled] = useState(!!link?.thumbBorderColor)
+  const [thumbBorderColor, setThumbBorderColor] = useState(link?.thumbBorderColor || '#6366f1')
+  const [thumbBorderWidth, setThumbBorderWidth] = useState(link?.thumbBorderWidth || 2)
   const [featured, setFeatured] = useState(!!link?.featured)
   const [startAt, setStartAt] = useState(toLocalInput(link?.startAt))
   const [endAt, setEndAt] = useState(toLocalInput(link?.endAt))
@@ -134,6 +139,11 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
     setUrl(l?.url ?? '')
     setIcon(l?.icon ?? 'Link')
     setThumbnailUrl(l?.thumbnailUrl ?? '')
+    setThumbBgEnabled(!!l?.thumbBgColor)
+    setThumbBgColor(l?.thumbBgColor || '#ffffff')
+    setThumbBorderEnabled(!!l?.thumbBorderColor)
+    setThumbBorderColor(l?.thumbBorderColor || '#6366f1')
+    setThumbBorderWidth(l?.thumbBorderWidth || 2)
     setFeatured(!!l?.featured)
     setStartAt(toLocalInput(l?.startAt))
     setEndAt(toLocalInput(l?.endAt))
@@ -158,6 +168,9 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
       url,
       icon,
       thumbnailUrl: thumbnailUrl || undefined,
+      thumbBgColor: thumbBgEnabled ? thumbBgColor : undefined,
+      thumbBorderColor: thumbBorderEnabled ? thumbBorderColor : undefined,
+      thumbBorderWidth: thumbBorderWidth,
       featured: featured || undefined,
       startAt: fromLocalInput(startAt),
       endAt: fromLocalInput(endAt),
@@ -165,9 +178,12 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
     })
   }
 
+  const thumbPreviewBg = thumbBgEnabled ? thumbBgColor : undefined
+  const thumbPreviewBorder = thumbBorderEnabled ? `${thumbBorderWidth}px solid ${thumbBorderColor}` : undefined
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{link && links_isNew(link) ? 'Add Link' : 'Edit Link'}</DialogTitle>
         </DialogHeader>
@@ -187,8 +203,69 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
 
           <div className="space-y-1">
             <Label>Thumbnail image <span className="text-muted-foreground font-normal">(optional)</span></Label>
-            <ImageUpload value={thumbnailUrl} onChange={v => setThumbnailUrl(v ?? '')} maxDim={256} />
+            <ImageUpload
+              value={thumbnailUrl}
+              onChange={v => setThumbnailUrl(v ?? '')}
+              maxDim={256}
+              previewBg={thumbPreviewBg}
+              previewBorder={thumbPreviewBorder}
+            />
             <p className="text-xs text-muted-foreground">Shown instead of the icon on the button.</p>
+
+            {/* Thumbnail background & border */}
+            <div className="mt-2 space-y-3 rounded-lg border border-border p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">Background</p>
+                  <p className="text-xs text-muted-foreground">Fill behind transparent images.</p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  {thumbBgEnabled && (
+                    <input
+                      type="color"
+                      aria-label="Thumbnail background color"
+                      value={thumbBgColor}
+                      onChange={e => setThumbBgColor(e.target.value)}
+                      className="h-9 w-12 rounded-md border border-input cursor-pointer p-1"
+                    />
+                  )}
+                  <Switch checked={thumbBgEnabled} onCheckedChange={setThumbBgEnabled} />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+                <div>
+                  <p className="text-sm font-medium">Border</p>
+                  <p className="text-xs text-muted-foreground">Ring around the thumbnail.</p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  {thumbBorderEnabled && (
+                    <>
+                      <input
+                        type="color"
+                        aria-label="Thumbnail border color"
+                        value={thumbBorderColor}
+                        onChange={e => setThumbBorderColor(e.target.value)}
+                        className="h-9 w-12 rounded-md border border-input cursor-pointer p-1"
+                      />
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min={1}
+                          max={12}
+                          aria-label="Thumbnail border width"
+                          value={thumbBorderWidth}
+                          onChange={e => setThumbBorderWidth(Math.max(1, Math.min(12, Number(e.target.value) || 1)))}
+                          className="h-9 w-16"
+                        />
+                        <span className="text-xs text-muted-foreground">px</span>
+                      </div>
+                    </>
+                  )}
+                  <Switch checked={thumbBorderEnabled} onCheckedChange={setThumbBorderEnabled} />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center justify-between rounded-lg border border-border p-3">

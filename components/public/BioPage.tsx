@@ -233,11 +233,18 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                   whileTap={{ scale: 0.98 }}
                 >
                   {block.thumbnailUrl ? (
-                    <img
-                      src={block.thumbnailUrl}
-                      alt=""
-                      className="w-11 h-11 rounded-lg object-cover shrink-0"
-                    />
+                    <div
+                      className="w-11 h-11 rounded-lg overflow-hidden shrink-0"
+                      style={{
+                        background: block.thumbBgColor || undefined,
+                        border: block.thumbBorderColor
+                          ? `${block.thumbBorderWidth || 2}px solid ${block.thumbBorderColor}`
+                          : undefined,
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <img src={block.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
                   ) : (
                     <span
                       className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
