@@ -18,6 +18,7 @@ import { Switch } from '@/components/ui/switch'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { SaveButton } from '@/components/admin/SaveButton'
 import { IconPicker, DynamicIcon } from '@/components/admin/IconPicker'
+import { ImageUpload } from '@/components/admin/ImageUpload'
 import { type SiteConfig, type ContentBlock, deriveContent } from '@/lib/config'
 import { GripVertical, Pencil, Trash2, Plus, Star, Clock, ShieldAlert } from 'lucide-react'
 
@@ -185,8 +186,8 @@ function EditDialog({ link, open, onClose, onSave }: EditDialogProps) {
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="link-thumb">Thumbnail image URL <span className="text-muted-foreground font-normal">(optional)</span></Label>
-            <Input id="link-thumb" placeholder="https://…/image.jpg" value={thumbnailUrl} onChange={e => setThumbnailUrl(e.target.value)} />
+            <Label>Thumbnail image <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <ImageUpload value={thumbnailUrl} onChange={v => setThumbnailUrl(v ?? '')} maxDim={256} />
             <p className="text-xs text-muted-foreground">Shown instead of the icon on the button.</p>
           </div>
 

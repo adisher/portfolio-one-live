@@ -77,8 +77,11 @@ export function BioPage({ config, themeClass }: BioPageProps) {
     trackPageView()
   }, [])
 
-  // Unified content list: enabled blocks that are within their schedule window.
-  const blocks = deriveContent(config).filter(b => b.enabled && isBlockLive(b))
+  // Unified content list: enabled blocks within their schedule window, with
+  // featured links floated to the top (stable sort preserves order otherwise).
+  const blocks = deriveContent(config)
+    .filter(b => b.enabled && isBlockLive(b))
+    .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
 
   const socialEntries = Object.entries(config.socials) as [keyof typeof config.socials, string][]
 
