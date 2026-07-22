@@ -62,8 +62,20 @@ function SortableLinkRow({ link, onEdit, onDelete, onToggle }: SortableLinkRowPr
       </button>
 
       {link.thumbnailUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={link.thumbnailUrl} alt="" className="h-8 w-8 rounded object-cover shrink-0" />
+        <div
+          className="h-8 w-8 rounded overflow-hidden shrink-0"
+          style={{
+            background: link.thumbBgColor || undefined,
+            border: link.thumbBorderColor
+              ? `${link.thumbBorderWidth || 2}px solid ${link.thumbBorderColor}`
+              : undefined,
+            padding: (link.thumbBgColor || link.thumbBorderColor) ? (link.thumbPadding ?? 0) : 0,
+            boxSizing: 'border-box',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={link.thumbnailUrl} alt="" className="h-full w-full object-cover rounded-sm" />
+        </div>
       ) : (
         <DynamicIcon name={link.icon || 'Link'} className="h-5 w-5 shrink-0 text-muted-foreground" />
       )}
