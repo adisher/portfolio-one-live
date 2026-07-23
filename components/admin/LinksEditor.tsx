@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { SaveButton } from '@/components/admin/SaveButton'
 import { IconPicker, DynamicIcon } from '@/components/admin/IconPicker'
@@ -22,7 +23,7 @@ import { ImageUpload } from '@/components/admin/ImageUpload'
 import { type SiteConfig, type ContentBlock, type BlockType, deriveContent } from '@/lib/config'
 import {
   GripVertical, Pencil, Trash2, Star, Clock, ShieldAlert,
-  Link2, Heading, Video, Music, Code2,
+  Link2, Heading, Video, Music, Code2, ShoppingBag, Coffee,
 } from 'lucide-react'
 
 interface LinksEditorProps {
@@ -39,12 +40,16 @@ const BLOCK_TYPES: { type: BlockType; label: string; icon: React.ElementType }[]
   { type: 'video', label: 'Video', icon: Video },
   { type: 'music', label: 'Music', icon: Music },
   { type: 'embed', label: 'Embed', icon: Code2 },
+  { type: 'product', label: 'Product', icon: ShoppingBag },
+  { type: 'tip', label: 'Tip jar', icon: Coffee },
 ]
 const BLOCK_LABEL: Record<BlockType, string> = {
   link: 'Link', header: 'Header', video: 'Video', music: 'Music', embed: 'Embed',
+  product: 'Product', tip: 'Tip jar',
 }
 const BLOCK_ICON: Record<BlockType, React.ElementType> = {
   link: Link2, header: Heading, video: Video, music: Music, embed: Code2,
+  product: ShoppingBag, tip: Coffee,
 }
 
 // Creative default section headings, picked at random when a new section
@@ -54,6 +59,8 @@ const HEADER_IDEAS: Record<BlockType, string[]> = {
   video: ['🎬 Watch This', '📺 On Screen', '🍿 Press Play', '🎥 Featured Video'],
   music: ['🎵 Now Playing', '🎧 On Repeat', '🔊 Listen In', '🎶 My Soundtrack'],
   embed: ['✨ Take a Look', '📌 Check This Out', '👇 Right This Way', '🗓️ Let’s Connect'],
+  product: ['🛍️ Shop My Work', '💎 Featured Product', '🧾 Grab Yours', '🚀 Get It Now'],
+  tip: ['☕ Support My Work', '💛 Buy Me a Coffee', '🙏 Show Some Love', '✨ Tip Jar'],
   header: [''],
 }
 function creativeHeader(type: BlockType): string {
@@ -67,6 +74,8 @@ function rowSummary(b: ContentBlock): { primary: string; secondary: string } {
     case 'video': return { primary: b.embedUrl || 'No URL', secondary: 'Video' }
     case 'music': return { primary: b.embedUrl || 'No URL', secondary: 'Music embed' }
     case 'embed': return { primary: b.embedUrl || 'No URL', secondary: 'Embed' }
+    case 'product': return { primary: b.title || 'Product', secondary: b.price ? `Product · ${b.price}` : 'Product' }
+    case 'tip': return { primary: b.title || 'Tip jar', secondary: 'Tip jar' }
     default: return { primary: b.title || 'Untitled', secondary: b.url || 'No URL' }
   }
 }
@@ -197,6 +206,9 @@ function EditDialog({ block, isNew, open, onClose, onSave }: EditDialogProps) {
   const [startAt, setStartAt] = useState('')
   const [endAt, setEndAt] = useState('')
   const [ageGate, setAgeGate] = useState(false)
+  const [price, setPrice] = useState('')
+  const [description, setDescription] = useState('')
+  const [buttonText, setButtonText] = useState('')
 
   const reset = useCallback((b: ContentBlock | null) => {
     setTitle(b?.title ?? '')
@@ -215,6 +227,9 @@ function EditDialog({ block, isNew, open, onClose, onSave }: EditDialogProps) {
     setStartAt(toLocalInput(b?.startAt))
     setEndAt(toLocalInput(b?.endAt))
     setAgeGate(!!b?.ageGate)
+    setPrice(b?.price ?? '')
+    setDescription(b?.description ?? '')
+    setButtonText(b?.buttonText ?? '')
   }, [])
 
   useEffect(() => {
@@ -231,6 +246,19 @@ function EditDialog({ block, isNew, open, onClose, onSave }: EditDialogProps) {
       onSave({ ...block, text })
     } else if (type === 'video' || type === 'music' || type === 'embed') {
       onSave({ ...block, embedUrl })
+    } else if (type === 'product') {
+      onSave({
+        ...block,
+        title, url, price, description,
+        buttonText: buttonText || undefined,
+        thumbnailUrl: thumbnailUrl || undefined,
+        thumbBgColor: thumbBgEnabled ? thumbBgColor : undefined,
+        thumbBorderColor: thumbBorderEnabled ? thumbBorderColor : undefined,
+        thumbBorderWidth,
+        thumbPadding: (thumbBgEnabled || thumbBorderEnabled) ? thumbPadding : undefined,
+      })
+    } else if (type === 'tip') {
+      onSave({ ...block, title, icon, url, description, buttonText: buttonText || undefined })
     } else {
       onSave({
         ...block,
@@ -278,6 +306,68 @@ function EditDialog({ block, isNew, open, onClose, onSave }: EditDialogProps) {
               <Input id="embed-url" placeholder={embedHelp.placeholder} value={embedUrl} onChange={e => setEmbedUrl(e.target.value)} />
               <p className="text-xs text-muted-foreground">{embedHelp.help}</p>
             </div>
+          )}
+
+          {/* Product block */}
+          {type === 'product' && (
+            <>
+              <div className="space-y-1">
+                <Label htmlFor="prod-title">Title</Label>
+                <Input id="prod-title" placeholder="My E-book" value={title} onChange={e => setTitle(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="prod-price">Price</Label>
+                  <Input id="prod-price" placeholder="$29" value={price} onChange={e => setPrice(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="prod-btn">Button text</Label>
+                  <Input id="prod-btn" placeholder="Buy Now" value={buttonText} onChange={e => setButtonText(e.target.value)} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="prod-desc">Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <Textarea id="prod-desc" rows={2} placeholder="What the buyer gets…" value={description} onChange={e => setDescription(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="prod-url">Checkout link</Label>
+                <Input id="prod-url" placeholder="Stripe / Gumroad / Lemon Squeezy URL" value={url} onChange={e => setUrl(e.target.value)} />
+                <p className="text-xs text-muted-foreground">Paste a hosted checkout link — the payment happens securely on their site, no setup here.</p>
+              </div>
+              <div className="space-y-1">
+                <Label>Product image <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <ImageUpload value={thumbnailUrl} onChange={v => setThumbnailUrl(v ?? '')} crop="none" maxDim={640} shape="square" />
+              </div>
+            </>
+          )}
+
+          {/* Tip jar block */}
+          {type === 'tip' && (
+            <>
+              <div className="space-y-1">
+                <Label>Icon</Label>
+                <IconPicker value={icon} onChange={setIcon} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="tip-title">Title</Label>
+                <Input id="tip-title" placeholder="Buy me a coffee" value={title} onChange={e => setTitle(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="tip-desc">Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <Textarea id="tip-desc" rows={2} placeholder="Support my work…" value={description} onChange={e => setDescription(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="tip-btn">Button text</Label>
+                  <Input id="tip-btn" placeholder="Support" value={buttonText} onChange={e => setButtonText(e.target.value)} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="tip-url">Tip link</Label>
+                <Input id="tip-url" placeholder="Ko-fi / Buy Me a Coffee / PayPal.me URL" value={url} onChange={e => setUrl(e.target.value)} />
+                <p className="text-xs text-muted-foreground">Paste your tipping/donation link — supporters pay on that provider.</p>
+              </div>
+            </>
           )}
 
           {/* Link block */}
@@ -465,9 +555,10 @@ export function LinksEditor({ config }: LinksEditorProps) {
 
   function handleAdd(type: BlockType) {
     const base = { id: generateId(), type, enabled: true, order: blocks.length }
-    const block: ContentBlock = type === 'link'
-      ? { ...base, title: '', url: '', icon: 'Link' }
-      : base
+    let block: ContentBlock = base
+    if (type === 'link') block = { ...base, title: '', url: '', icon: 'Link' }
+    else if (type === 'tip') block = { ...base, icon: 'Coffee', buttonText: 'Support' }
+    else if (type === 'product') block = { ...base, buttonText: 'Buy Now' }
     setEditing(block)
     setIsAdding(true)
     setDialogOpen(true)

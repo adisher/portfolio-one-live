@@ -11,7 +11,7 @@ export interface LinkItem {
 // The page body is a single ordered list of typed blocks. In G1 only 'link'
 // blocks exist; G2 adds header/video/music/embed. Legacy `links` are read as
 // link blocks via deriveContent() for backward compatibility.
-export type BlockType = 'link' | 'header' | 'video' | 'music' | 'embed'
+export type BlockType = 'link' | 'header' | 'video' | 'music' | 'embed' | 'product' | 'tip'
 
 export interface ContentBlock {
   id: string
@@ -35,6 +35,10 @@ export interface ContentBlock {
   text?: string
   // video / music / embed field
   embedUrl?: string
+  // product / tip fields (monetization via hosted checkout links)
+  price?: string        // display price, e.g. "$29" or "Pay what you want"
+  description?: string
+  buttonText?: string   // CTA label, e.g. "Buy Now" / "Support"
 }
 
 export interface SocialLinks {

@@ -435,6 +435,75 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                 )
               }
 
+              if (block.type === 'product') {
+                return (
+                  <motion.div
+                    key={block.id}
+                    className={`bio-link-card rounded-xl overflow-hidden ${isGrid ? 'col-span-2' : ''}`}
+                    variants={fadeUp} initial="hidden" animate="visible" custom={delay}
+                  >
+                    {block.thumbnailUrl && (
+                      <img src={block.thumbnailUrl} alt="" className="w-full max-h-56 object-cover" />
+                    )}
+                    <div className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{block.title}</h3>
+                        {block.price && (
+                          <span className="font-bold whitespace-nowrap" style={{ color: config.accentColor || '#6366f1' }}>
+                            {block.price}
+                          </span>
+                        )}
+                      </div>
+                      {block.description && <p className="text-sm bio-text-secondary">{block.description}</p>}
+                      {block.url && (
+                        <a
+                          href={block.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => trackLinkClick(block.id)}
+                          className="mt-1 block w-full text-center font-semibold px-4 py-2.5 rounded-xl text-white transition-opacity hover:opacity-90"
+                          style={{ background: config.accentColor || '#6366f1' }}
+                        >
+                          {block.buttonText || 'Buy Now'}
+                        </a>
+                      )}
+                    </div>
+                  </motion.div>
+                )
+              }
+
+              if (block.type === 'tip') {
+                return (
+                  <motion.div
+                    key={block.id}
+                    className={`bio-cta rounded-2xl p-5 text-center ${isGrid ? 'col-span-2' : ''}`}
+                    variants={fadeUp} initial="hidden" animate="visible" custom={delay}
+                  >
+                    <div className="flex justify-center mb-2">
+                      <span className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'var(--social-bg)' }}>
+                        <DynamicIcon name={block.icon || 'Coffee'} className="h-5 w-5" style={{ color: 'var(--text-primary)' }} />
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-lg" style={{ color: 'var(--text-primary)', textShadow: mediaTextShadow }}>
+                      {block.title || 'Support my work'}
+                    </h3>
+                    {block.description && <p className="text-sm bio-text-secondary mt-1">{block.description}</p>}
+                    {block.url && (
+                      <a
+                        href={block.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => trackLinkClick(block.id)}
+                        className="inline-block mt-4 font-semibold px-6 py-2.5 rounded-xl text-white transition-opacity hover:opacity-90"
+                        style={{ background: config.accentColor || '#6366f1' }}
+                      >
+                        {block.buttonText || 'Support'}
+                      </a>
+                    )}
+                  </motion.div>
+                )
+              }
+
               const featured = !!block.featured
               const gridTile = isGrid && !featured // featured links stay full-width
               const colSpan = isGrid ? (featured ? 'col-span-2' : 'col-span-1') : ''
