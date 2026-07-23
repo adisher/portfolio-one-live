@@ -135,13 +135,17 @@ export function BioPage({ config, themeClass }: BioPageProps) {
 
   return (
     <div
-      className={`bio-page ${themeClass}`}
+      className={`bio-page ${themeClass} overflow-hidden`}
       style={{ fontFamily: fontStack(config.fontFamily), position: 'relative', ...customVars } as React.CSSProperties}
     >
       {/* Owner-authored custom CSS */}
       {config.customCss && <style dangerouslySetInnerHTML={{ __html: config.customCss }} />}
 
-      {/* Custom background layer (image / video) + readability scrim */}
+      {/* Custom background layer (image / video) + readability scrim.
+          Video spans the full page (absolute) so vertical clips reveal on
+          scroll and mobile avoids the iOS fixed-video bug; a landscape image
+          stays fixed for a classic static cover. object-cover fills every
+          device/orientation with no letterbox bars. */}
       {hasMediaBg && config.backgroundType === 'image' && (
         <div
           className="fixed inset-0 z-0 bg-cover bg-center"
@@ -151,7 +155,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
       )}
       {hasMediaBg && config.backgroundType === 'video' && (
         <video
-          className="fixed inset-0 z-0 h-full w-full object-cover"
+          className="absolute inset-0 z-0 h-full w-full object-cover"
           src={config.backgroundUrl}
           autoPlay muted loop playsInline
           aria-hidden
@@ -159,7 +163,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
       )}
       {hasMediaBg && config.backgroundOverlay > 0 && (
         <div
-          className="fixed inset-0 z-0"
+          className={`${config.backgroundType === 'video' ? 'absolute' : 'fixed'} inset-0 z-0`}
           style={{ background: `rgba(0,0,0,${Math.min(80, config.backgroundOverlay) / 100})` }}
           aria-hidden
         />
