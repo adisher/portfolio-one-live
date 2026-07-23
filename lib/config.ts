@@ -96,6 +96,12 @@ export type BackgroundType = 'theme' | 'image' | 'video'
 //  'pinned'  — fixed cover; the video stays put and content scrolls over it
 export type BackgroundVideoFit = 'auto' | 'cover' | 'natural' | 'pinned'
 
+// Readability scrim color over a media background:
+//  'auto'  — opposite the theme's text (dark scrim for light text, and vice versa)
+//  'dark'  — always a black scrim
+//  'light' — always a white scrim
+export type OverlayColor = 'auto' | 'dark' | 'light'
+
 export interface SiteConfig {
   name: string
   tagline: string
@@ -116,7 +122,8 @@ export interface SiteConfig {
   customCss: string
   backgroundType: BackgroundType
   backgroundUrl: string
-  backgroundOverlay: number // 0–80: dark scrim over image/video for readability
+  backgroundOverlay: number // 0–80: scrim strength over image/video for readability
+  backgroundOverlayColor: OverlayColor
   backgroundVideoFit: BackgroundVideoFit
   linkLayout: LinkLayout
   buttonShape: ButtonShape
@@ -170,6 +177,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   backgroundType: 'theme',
   backgroundUrl: '',
   backgroundOverlay: 0,
+  backgroundOverlayColor: 'auto',
   backgroundVideoFit: 'auto',
   linkLayout: 'list',
   buttonShape: 'rounded',

@@ -118,6 +118,24 @@ export function getTheme(name: ThemeName): ThemeDefinition {
   return THEMES.find(t => t.name === name) ?? THEMES[0]
 }
 
+// Relative luminance (0 = black, 1 = white) of a #hex color.
+function luminance(color: string): number {
+  let hex = color.replace('#', '').trim()
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('')
+  if (hex.length < 6) return 1
+  const r = parseInt(hex.slice(0, 2), 16)
+  const g = parseInt(hex.slice(2, 4), 16)
+  const b = parseInt(hex.slice(4, 6), 16)
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+}
+
+// Does this theme render light-colored text? Custom themes use their own text
+// color; presets use the palette's text color. Drives the auto overlay scrim.
+export function themeTextIsLight(name: ThemeName, customTextColor?: string): boolean {
+  const color = name === 'custom' ? (customTextColor || '#ffffff') : getTheme(name).preview.text
+  return luminance(color) > 0.5
+}
+
 // CSS class applied to the body based on theme selection
 export function getThemeClass(name: ThemeName): string {
   return `theme-${name}`

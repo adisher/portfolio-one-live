@@ -4,7 +4,7 @@ import { useState } from 'react'
 import {
   SiteConfig, ThemeName,
   type LinkLayout, type ButtonShape, type ButtonFill, type BackgroundType,
-  type BackgroundVideoFit, type CustomTheme, DEFAULT_CUSTOM_THEME,
+  type BackgroundVideoFit, type OverlayColor, type CustomTheme, DEFAULT_CUSTOM_THEME,
 } from '@/lib/config'
 import { THEMES } from '@/lib/themes'
 import { FONTS } from '@/lib/fonts'
@@ -46,6 +46,7 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
   const [backgroundType, setBackgroundType] = useState<BackgroundType>(config.backgroundType || 'theme')
   const [backgroundUrl, setBackgroundUrl] = useState(config.backgroundUrl || '')
   const [backgroundOverlay, setBackgroundOverlay] = useState(config.backgroundOverlay || 0)
+  const [backgroundOverlayColor, setBackgroundOverlayColor] = useState<OverlayColor>(config.backgroundOverlayColor || 'auto')
   const [backgroundVideoFit, setBackgroundVideoFit] = useState<BackgroundVideoFit>(config.backgroundVideoFit || 'auto')
   const [customCss, setCustomCss] = useState(config.customCss || '')
 
@@ -56,7 +57,7 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
       body: JSON.stringify({
         theme, customTheme, accentColor, fontFamily,
         linkLayout, buttonShape, buttonFill,
-        backgroundType, backgroundUrl, backgroundOverlay, backgroundVideoFit,
+        backgroundType, backgroundUrl, backgroundOverlay, backgroundOverlayColor, backgroundVideoFit,
         customCss,
       }),
     })
@@ -319,14 +320,35 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
           )}
 
           {backgroundType !== 'theme' && (
-            <div className="space-y-2">
-              <Label>Darken overlay — {backgroundOverlay}%</Label>
-              <input
-                type="range" min={0} max={80} value={backgroundOverlay}
-                onChange={e => setBackgroundOverlay(Number(e.target.value))}
-                className="w-full max-w-md accent-primary"
-              />
-              <p className="text-xs text-muted-foreground">Adds a dark scrim so text stays readable over busy media.</p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Readability overlay</Label>
+                <Select value={backgroundOverlayColor} onValueChange={v => setBackgroundOverlayColor(v as OverlayColor)}>
+                  <SelectTrigger className="w-full max-w-md"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">Auto — match the theme (recommended)</SelectItem>
+                    <SelectItem value="dark">Dark scrim</SelectItem>
+                    <SelectItem value="light">Light scrim</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Auto tints the media opposite to your theme’s text — dark scrim for light text, light
+                  scrim for dark text — so content stays readable on any image or video.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  Overlay strength — {backgroundOverlay}%
+                  {backgroundOverlayColor === 'auto' && backgroundOverlay < 25 && (
+                    <span className="text-muted-foreground font-normal"> (Auto keeps a 25% minimum)</span>
+                  )}
+                </Label>
+                <input
+                  type="range" min={0} max={80} value={backgroundOverlay}
+                  onChange={e => setBackgroundOverlay(Number(e.target.value))}
+                  className="w-full max-w-md accent-primary"
+                />
+              </div>
             </div>
           )}
         </CardContent>

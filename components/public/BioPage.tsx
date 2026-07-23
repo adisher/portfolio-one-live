@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { SiteConfig, ContentBlock, deriveContent, isBlockLive } from '@/lib/config'
 import { fontStack } from '@/lib/fonts'
+import { themeTextIsLight } from '@/lib/themes'
 import { DynamicIcon } from '@/components/admin/IconPicker'
 import {
   Github, Twitter, Linkedin, Instagram, Youtube, Mail,
@@ -128,6 +129,19 @@ export function BioPage({ config, themeClass }: BioPageProps) {
   // Overlay must sit in the same positioning context as the media it dims.
   const overlayPos = config.backgroundType === 'video' && !videoPinned ? 'absolute' : 'fixed'
 
+  // Readability scrim. In 'auto', the scrim is the OPPOSITE of the theme's
+  // text (dark scrim for light text, light scrim for dark text) so text over
+  // the media always has contrast — regardless of how bright the media is.
+  const overlayMode = config.backgroundOverlayColor || 'auto'
+  const lightText = themeTextIsLight(config.theme, config.customTheme?.textColor)
+  const scrimDark = overlayMode === 'dark' ? true : overlayMode === 'light' ? false : lightText
+  const scrimRGB = scrimDark ? '0,0,0' : '255,255,255'
+  // 'auto' applies a sensible minimum so readability works out of the box.
+  const overlayStrength = overlayMode === 'auto'
+    ? Math.max(config.backgroundOverlay || 0, 25)
+    : (config.backgroundOverlay || 0)
+  const showOverlay = hasMediaBg && overlayStrength > 0
+
   // Custom theme → inline CSS variables that override the (empty) theme-custom
   // class. Custom properties inherit, so all children pick them up.
   const ct = config.customTheme
@@ -181,10 +195,10 @@ export function BioPage({ config, themeClass }: BioPageProps) {
           aria-hidden
         />
       )}
-      {hasMediaBg && config.backgroundOverlay > 0 && (
+      {showOverlay && (
         <div
           className={`${overlayPos} inset-0 z-0`}
-          style={{ background: `rgba(0,0,0,${Math.min(80, config.backgroundOverlay) / 100})` }}
+          style={{ background: `rgba(${scrimRGB},${Math.min(80, overlayStrength) / 100})` }}
           aria-hidden
         />
       )}
