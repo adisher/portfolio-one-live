@@ -96,6 +96,10 @@ const socialIconMap: Record<string, React.ElementType> = {
 
 export function BioPage({ config, themeClass }: BioPageProps) {
   const [ageGateBlock, setAgeGateBlock] = useState<ContentBlock | null>(null)
+  // Background-video orientation, detected from its metadata. Portrait videos
+  // cover the full page (reveal on scroll); landscape videos show at their
+  // natural aspect and travel up with the scroll instead of cropping vertical.
+  const [bgVideoLandscape, setBgVideoLandscape] = useState(false)
 
   useEffect(() => {
     trackPageView()
@@ -155,9 +159,17 @@ export function BioPage({ config, themeClass }: BioPageProps) {
       )}
       {hasMediaBg && config.backgroundType === 'video' && (
         <video
-          className="absolute inset-0 z-0 h-full w-full object-cover"
+          className={`absolute z-0 ${
+            bgVideoLandscape
+              ? 'top-0 left-0 w-full h-auto'          // landscape: natural aspect, travels with scroll
+              : 'inset-0 h-full w-full object-cover'  // portrait: covers full page, reveals on scroll
+          }`}
           src={config.backgroundUrl}
           autoPlay muted loop playsInline
+          onLoadedMetadata={e => {
+            const v = e.currentTarget
+            if (v.videoWidth && v.videoHeight) setBgVideoLandscape(v.videoWidth >= v.videoHeight)
+          }}
           aria-hidden
         />
       )}
