@@ -321,33 +321,29 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
 
           {backgroundType !== 'theme' && (
             <div className="space-y-4">
+              <p className="text-xs text-muted-foreground">
+                Text over a media background is automatically outlined to stay readable on any image or
+                video. The overlay below is an optional tint on top of that.
+              </p>
               <div className="space-y-2">
-                <Label>Readability overlay</Label>
+                <Label>Overlay tint</Label>
                 <Select value={backgroundOverlayColor} onValueChange={v => setBackgroundOverlayColor(v as OverlayColor)}>
                   <SelectTrigger className="w-full max-w-md"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">Auto — match the theme (recommended)</SelectItem>
-                    <SelectItem value="dark">Dark scrim</SelectItem>
-                    <SelectItem value="light">Light scrim</SelectItem>
+                    <SelectItem value="auto">Auto — match the theme</SelectItem>
+                    <SelectItem value="dark">Dark tint</SelectItem>
+                    <SelectItem value="light">Light tint</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">
-                  Auto tints the media opposite to your theme’s text — dark scrim for light text, light
-                  scrim for dark text — so content stays readable on any image or video.
-                </p>
               </div>
               <div className="space-y-2">
-                <Label>
-                  Overlay strength — {backgroundOverlay}%
-                  {backgroundOverlayColor === 'auto' && backgroundOverlay < 25 && (
-                    <span className="text-muted-foreground font-normal"> (Auto keeps a 25% minimum)</span>
-                  )}
-                </Label>
+                <Label>Overlay strength — {backgroundOverlay}%</Label>
                 <input
                   type="range" min={0} max={80} value={backgroundOverlay}
                   onChange={e => setBackgroundOverlay(Number(e.target.value))}
                   className="w-full max-w-md accent-primary"
                 />
+                <p className="text-xs text-muted-foreground">Optional — darkens or lightens the media for mood. Leave at 0 for none.</p>
               </div>
             </div>
           )}

@@ -136,11 +136,20 @@ export function BioPage({ config, themeClass }: BioPageProps) {
   const lightText = themeTextIsLight(config.theme, config.customTheme?.textColor)
   const scrimDark = overlayMode === 'dark' ? true : overlayMode === 'light' ? false : lightText
   const scrimRGB = scrimDark ? '0,0,0' : '255,255,255'
-  // 'auto' applies a sensible minimum so readability works out of the box.
-  const overlayStrength = overlayMode === 'auto'
-    ? Math.max(config.backgroundOverlay || 0, 25)
-    : (config.backgroundOverlay || 0)
+  // The overlay is now purely an optional aesthetic tint (off by default) —
+  // it no longer carries the readability burden.
+  const overlayStrength = config.backgroundOverlay || 0
   const showOverlay = hasMediaBg && overlayStrength > 0
+
+  // Readability is handled locally: over a media background, "naked" text
+  // (name, tagline, bio, headers) gets a contrasting outline/glow — dark halo
+  // for light text, light halo for dark text — so it stays legible on ANY
+  // image or video without darkening the whole background.
+  const mediaTextShadow = hasMediaBg
+    ? (lightText
+        ? '0 1px 2px rgba(0,0,0,0.95), 0 0 16px rgba(0,0,0,0.7)'
+        : '0 1px 2px rgba(255,255,255,0.98), 0 0 16px rgba(255,255,255,0.8)')
+    : undefined
 
   // Custom theme → inline CSS variables that override the (empty) theme-custom
   // class. Custom properties inherit, so all children pick them up.
@@ -262,16 +271,17 @@ export function BioPage({ config, themeClass }: BioPageProps) {
         >
           <h1
             className="text-2xl sm:text-3xl font-bold mb-2"
-            style={{ color: 'var(--text-primary)' }}
+            style={{ color: 'var(--text-primary)', textShadow: mediaTextShadow }}
           >
             {config.name}
           </h1>
           {config.tagline && (
-            <p className="text-base sm:text-lg bio-text-secondary">{config.tagline}</p>
+            <p className="text-base sm:text-lg bio-text-secondary" style={{ textShadow: mediaTextShadow }}>{config.tagline}</p>
           )}
           {config.bio && (
             <p
               className="mt-3 text-sm bio-text-secondary max-w-sm mx-auto leading-relaxed"
+              style={{ textShadow: mediaTextShadow }}
             >
               {config.bio}
             </p>
@@ -325,7 +335,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                     <span className="h-px flex-1" style={{ background: 'var(--card-border)' }} />
                     <h2
                       className="text-xs font-bold uppercase tracking-[0.18em] whitespace-nowrap"
-                      style={{ color: 'var(--text-primary)', opacity: 0.9 }}
+                      style={{ color: 'var(--text-primary)', opacity: 0.9, textShadow: mediaTextShadow }}
                     >
                       {block.text}
                     </h2>
@@ -453,7 +463,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                   )}
                   <span
                     className={`${gridTile ? 'text-center text-sm' : 'flex-1 text-left'} ${featured ? 'font-semibold text-lg' : 'font-medium'}`}
-                    style={{ color: 'var(--text-primary)' }}
+                    style={{ color: 'var(--text-primary)', textShadow: mediaTextShadow }}
                   >
                     {block.title}
                   </span>
