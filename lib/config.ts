@@ -93,7 +93,8 @@ export type BackgroundType = 'theme' | 'image' | 'video'
 //  'auto'    — detect orientation from the video's metadata
 //  'cover'   — fill the full page, reveal on scroll (best for vertical)
 //  'natural' — keep aspect ratio, travel up with the scroll (best for landscape)
-export type BackgroundVideoFit = 'auto' | 'cover' | 'natural'
+//  'pinned'  — fixed cover; the video stays put and content scrolls over it
+export type BackgroundVideoFit = 'auto' | 'cover' | 'natural' | 'pinned'
 
 export interface SiteConfig {
   name: string

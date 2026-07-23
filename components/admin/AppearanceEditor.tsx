@@ -308,6 +308,7 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
                     <SelectItem value="auto">Auto — detect orientation</SelectItem>
                     <SelectItem value="cover">Fill &amp; reveal on scroll — best for vertical</SelectItem>
                     <SelectItem value="natural">Fit width &amp; scroll — best for landscape</SelectItem>
+                    <SelectItem value="pinned">Pinned — video stays, content scrolls over it</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">

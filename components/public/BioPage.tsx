@@ -116,6 +116,18 @@ export function BioPage({ config, themeClass }: BioPageProps) {
   const hasMediaBg = config.backgroundType !== 'theme' && !!config.backgroundUrl
   const isGrid = config.linkLayout === 'grid'
 
+  // Background-video display mode.
+  const videoFit = config.backgroundVideoFit || 'auto'
+  const videoPinned = videoFit === 'pinned'                                   // fixed cover, content scrolls over
+  const videoNatural = videoFit === 'natural' || (videoFit === 'auto' && bgVideoLandscape) // aspect kept, scrolls up
+  const videoClass = videoPinned
+    ? 'fixed inset-0 h-full w-full object-cover'
+    : videoNatural
+      ? 'absolute top-0 left-0 w-full h-auto'
+      : 'absolute inset-0 h-full w-full object-cover'
+  // Overlay must sit in the same positioning context as the media it dims.
+  const overlayPos = config.backgroundType === 'video' && !videoPinned ? 'absolute' : 'fixed'
+
   // Custom theme → inline CSS variables that override the (empty) theme-custom
   // class. Custom properties inherit, so all children pick them up.
   const ct = config.customTheme
@@ -157,31 +169,21 @@ export function BioPage({ config, themeClass }: BioPageProps) {
           aria-hidden
         />
       )}
-      {hasMediaBg && config.backgroundType === 'video' && (() => {
-        const fit = config.backgroundVideoFit || 'auto'
-        // 'natural' forces landscape treatment; 'cover' forces full-page cover;
-        // 'auto' falls back to the orientation detected from the video metadata.
-        const natural = fit === 'natural' || (fit === 'auto' && bgVideoLandscape)
-        return (
-          <video
-            className={`absolute z-0 ${
-              natural
-                ? 'top-0 left-0 w-full h-auto'          // natural aspect, travels with scroll
-                : 'inset-0 h-full w-full object-cover'  // covers full page, reveals on scroll
-            }`}
-            src={config.backgroundUrl}
-            autoPlay muted loop playsInline
-            onLoadedMetadata={e => {
-              const v = e.currentTarget
-              if (v.videoWidth && v.videoHeight) setBgVideoLandscape(v.videoWidth >= v.videoHeight)
-            }}
-            aria-hidden
-          />
-        )
-      })()}
+      {hasMediaBg && config.backgroundType === 'video' && (
+        <video
+          className={`z-0 ${videoClass}`}
+          src={config.backgroundUrl}
+          autoPlay muted loop playsInline
+          onLoadedMetadata={e => {
+            const v = e.currentTarget
+            if (v.videoWidth && v.videoHeight) setBgVideoLandscape(v.videoWidth >= v.videoHeight)
+          }}
+          aria-hidden
+        />
+      )}
       {hasMediaBg && config.backgroundOverlay > 0 && (
         <div
-          className={`${config.backgroundType === 'video' ? 'absolute' : 'fixed'} inset-0 z-0`}
+          className={`${overlayPos} inset-0 z-0`}
           style={{ background: `rgba(0,0,0,${Math.min(80, config.backgroundOverlay) / 100})` }}
           aria-hidden
         />
