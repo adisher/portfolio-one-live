@@ -4,7 +4,7 @@ import { useState } from 'react'
 import {
   SiteConfig, ThemeName,
   type LinkLayout, type ButtonShape, type ButtonFill, type BackgroundType,
-  type CustomTheme, DEFAULT_CUSTOM_THEME,
+  type BackgroundVideoFit, type CustomTheme, DEFAULT_CUSTOM_THEME,
 } from '@/lib/config'
 import { THEMES } from '@/lib/themes'
 import { FONTS } from '@/lib/fonts'
@@ -46,6 +46,7 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
   const [backgroundType, setBackgroundType] = useState<BackgroundType>(config.backgroundType || 'theme')
   const [backgroundUrl, setBackgroundUrl] = useState(config.backgroundUrl || '')
   const [backgroundOverlay, setBackgroundOverlay] = useState(config.backgroundOverlay || 0)
+  const [backgroundVideoFit, setBackgroundVideoFit] = useState<BackgroundVideoFit>(config.backgroundVideoFit || 'auto')
   const [customCss, setCustomCss] = useState(config.customCss || '')
 
   async function save() {
@@ -55,7 +56,7 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
       body: JSON.stringify({
         theme, customTheme, accentColor, fontFamily,
         linkLayout, buttonShape, buttonFill,
-        backgroundType, backgroundUrl, backgroundOverlay,
+        backgroundType, backgroundUrl, backgroundOverlay, backgroundVideoFit,
         customCss,
       }),
     })
@@ -293,11 +294,27 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
           )}
 
           {backgroundType === 'video' && (
-            <div className="space-y-2">
-              <Label htmlFor="bg-video">Video URL (.mp4)</Label>
-              <Input id="bg-video" placeholder="https://…/background.mp4" value={backgroundUrl} onChange={e => setBackgroundUrl(e.target.value)} />
-              <p className="text-xs text-muted-foreground">A direct .mp4 link. It autoplays muted and loops.</p>
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="bg-video">Video URL (.mp4)</Label>
+                <Input id="bg-video" placeholder="https://…/background.mp4" value={backgroundUrl} onChange={e => setBackgroundUrl(e.target.value)} />
+                <p className="text-xs text-muted-foreground">A direct .mp4 link. It autoplays muted and loops.</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Video display</Label>
+                <Select value={backgroundVideoFit} onValueChange={v => setBackgroundVideoFit(v as BackgroundVideoFit)}>
+                  <SelectTrigger className="w-full max-w-md"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">Auto — detect orientation</SelectItem>
+                    <SelectItem value="cover">Fill &amp; reveal on scroll — best for vertical</SelectItem>
+                    <SelectItem value="natural">Fit width &amp; scroll — best for landscape</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  If a landscape video looks cropped into a vertical strip, choose “Fit width &amp; scroll”.
+                </p>
+              </div>
+            </>
           )}
 
           {backgroundType !== 'theme' && (

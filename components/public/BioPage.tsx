@@ -157,22 +157,28 @@ export function BioPage({ config, themeClass }: BioPageProps) {
           aria-hidden
         />
       )}
-      {hasMediaBg && config.backgroundType === 'video' && (
-        <video
-          className={`absolute z-0 ${
-            bgVideoLandscape
-              ? 'top-0 left-0 w-full h-auto'          // landscape: natural aspect, travels with scroll
-              : 'inset-0 h-full w-full object-cover'  // portrait: covers full page, reveals on scroll
-          }`}
-          src={config.backgroundUrl}
-          autoPlay muted loop playsInline
-          onLoadedMetadata={e => {
-            const v = e.currentTarget
-            if (v.videoWidth && v.videoHeight) setBgVideoLandscape(v.videoWidth >= v.videoHeight)
-          }}
-          aria-hidden
-        />
-      )}
+      {hasMediaBg && config.backgroundType === 'video' && (() => {
+        const fit = config.backgroundVideoFit || 'auto'
+        // 'natural' forces landscape treatment; 'cover' forces full-page cover;
+        // 'auto' falls back to the orientation detected from the video metadata.
+        const natural = fit === 'natural' || (fit === 'auto' && bgVideoLandscape)
+        return (
+          <video
+            className={`absolute z-0 ${
+              natural
+                ? 'top-0 left-0 w-full h-auto'          // natural aspect, travels with scroll
+                : 'inset-0 h-full w-full object-cover'  // covers full page, reveals on scroll
+            }`}
+            src={config.backgroundUrl}
+            autoPlay muted loop playsInline
+            onLoadedMetadata={e => {
+              const v = e.currentTarget
+              if (v.videoWidth && v.videoHeight) setBgVideoLandscape(v.videoWidth >= v.videoHeight)
+            }}
+            aria-hidden
+          />
+        )
+      })()}
       {hasMediaBg && config.backgroundOverlay > 0 && (
         <div
           className={`${config.backgroundType === 'video' ? 'absolute' : 'fixed'} inset-0 z-0`}

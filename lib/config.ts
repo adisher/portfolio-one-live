@@ -89,6 +89,11 @@ export type LinkLayout = 'list' | 'grid'
 export type ButtonShape = 'rounded' | 'pill' | 'square'
 export type ButtonFill = 'solid' | 'outline'
 export type BackgroundType = 'theme' | 'image' | 'video'
+// How a background video is displayed:
+//  'auto'    — detect orientation from the video's metadata
+//  'cover'   — fill the full page, reveal on scroll (best for vertical)
+//  'natural' — keep aspect ratio, travel up with the scroll (best for landscape)
+export type BackgroundVideoFit = 'auto' | 'cover' | 'natural'
 
 export interface SiteConfig {
   name: string
@@ -111,6 +116,7 @@ export interface SiteConfig {
   backgroundType: BackgroundType
   backgroundUrl: string
   backgroundOverlay: number // 0–80: dark scrim over image/video for readability
+  backgroundVideoFit: BackgroundVideoFit
   linkLayout: LinkLayout
   buttonShape: ButtonShape
   buttonFill: ButtonFill
@@ -163,6 +169,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   backgroundType: 'theme',
   backgroundUrl: '',
   backgroundOverlay: 0,
+  backgroundVideoFit: 'auto',
   linkLayout: 'list',
   buttonShape: 'rounded',
   buttonFill: 'solid',
