@@ -273,7 +273,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
 
         {/* Content blocks */}
         {config.showLinks && blocks.length > 0 && (
-          <div className={isGrid ? 'grid grid-cols-2 gap-3 mb-8 items-start' : 'space-y-3 mb-8'}>
+          <div className={isGrid ? 'grid grid-cols-2 gap-3 mb-8 items-stretch' : 'space-y-3 mb-8'}>
             {blocks.map((block, i) => {
               const delay = i + 3
 
@@ -378,7 +378,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                   }}
                   className={`bio-link-card shape-${config.buttonShape} fill-${config.buttonFill} flex w-full ${colSpan} ${
                     gridTile
-                      ? 'flex-col items-center text-center gap-2 px-4 py-5'
+                      ? 'flex-col items-center justify-center text-center gap-2 px-4 py-5'
                       : `items-center gap-4 px-5 ${featured ? 'py-5' : 'py-4'}`
                   }`}
                   style={featured ? {
@@ -407,7 +407,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                     </div>
                   ) : (
                     <span
-                      className={`${gridTile ? 'w-11 h-11' : 'w-9 h-9'} rounded-lg flex items-center justify-center shrink-0`}
+                      className={`${gridTile ? 'w-14 h-14' : 'w-9 h-9'} rounded-lg flex items-center justify-center shrink-0`}
                       style={{ background: 'var(--social-bg)' }}
                     >
                       <DynamicIcon name={block.icon || 'Link'} className="h-5 w-5" style={{ color: 'var(--text-primary)' }} />
