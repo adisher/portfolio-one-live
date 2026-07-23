@@ -99,6 +99,18 @@ export async function isRedisConfigured(): Promise<boolean> {
   return !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
 }
 
+export interface UserRequest {
+  type: 'font' | 'feature'
+  message: string
+  at: string
+}
+
+export async function addRequest(req: UserRequest): Promise<void> {
+  const r = getRedis()
+  await r.lpush(REDIS_KEYS.requests, JSON.stringify(req))
+  await r.ltrim(REDIS_KEYS.requests, 0, 199) // keep the 200 most recent
+}
+
 // Analytics helpers
 
 export async function trackPageView(country: string, referrer: string): Promise<void> {

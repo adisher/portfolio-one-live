@@ -4,10 +4,12 @@ import { useState, useRef, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
-import { KeyRound, Download, Upload, Loader2, Mail } from 'lucide-react'
+import { KeyRound, Download, Upload, Loader2, Mail, Sparkles } from 'lucide-react'
 
 export function SettingsEditor() {
   const [currentPassword, setCurrentPassword] = useState('')
@@ -16,6 +18,9 @@ export function SettingsEditor() {
   const [passwordSaving, setPasswordSaving] = useState(false)
   const [recoveryEmail, setRecoveryEmail] = useState('')
   const [emailSaving, setEmailSaving] = useState(false)
+  const [requestType, setRequestType] = useState<'font' | 'feature'>('feature')
+  const [requestMessage, setRequestMessage] = useState('')
+  const [requestSubmitting, setRequestSubmitting] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -43,6 +48,26 @@ export function SettingsEditor() {
       toast.error('An error occurred.')
     } finally {
       setEmailSaving(false)
+    }
+  }
+
+  async function handleSubmitRequest() {
+    if (!requestMessage.trim()) { toast.error('Please describe your request.'); return }
+    setRequestSubmitting(true)
+    try {
+      const res = await fetch('/api/admin/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: requestType, message: requestMessage }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { toast.error(data?.error ?? 'Could not send your request.'); return }
+      toast.success('Request sent — thank you!')
+      setRequestMessage('')
+    } catch {
+      toast.error('An error occurred.')
+    } finally {
+      setRequestSubmitting(false)
     }
   }
 
@@ -208,6 +233,51 @@ export function SettingsEditor() {
           <p className="text-xs text-muted-foreground">
             Importing will overwrite all current settings. Export first to back up.
           </p>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            Request a Font or Feature
+          </CardTitle>
+          <CardDescription>
+            Missing a font, or want a capability we don&apos;t have yet? Tell us — requests go
+            straight to the team.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1">
+            <Label>Type</Label>
+            <Select value={requestType} onValueChange={v => setRequestType(v as 'font' | 'feature')}>
+              <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="feature">Feature request</SelectItem>
+                <SelectItem value="font">Font request</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="req-msg">Details</Label>
+            <Textarea
+              id="req-msg"
+              rows={4}
+              value={requestMessage}
+              onChange={e => setRequestMessage(e.target.value)}
+              placeholder={requestType === 'font'
+                ? 'Which font would you like? (e.g. “Add Satoshi” or a Google Fonts link)'
+                : 'Describe the feature you’d like to see…'}
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={handleSubmitRequest} disabled={requestSubmitting} className="min-w-[160px]">
+              {requestSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {requestSubmitting ? 'Sending…' : 'Send Request'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -4,8 +4,11 @@ import { useState } from 'react'
 import {
   SiteConfig, ThemeName,
   type LinkLayout, type ButtonShape, type ButtonFill, type BackgroundType,
+  type CustomTheme, DEFAULT_CUSTOM_THEME,
 } from '@/lib/config'
 import { THEMES } from '@/lib/themes'
+import { FONTS } from '@/lib/fonts'
+import { Paintbrush } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -19,18 +22,24 @@ interface AppearanceEditorProps {
   config: SiteConfig
 }
 
-const FONT_OPTIONS = [
-  'Inter',
-  'Poppins',
-  'Roboto',
-  'Montserrat',
-  'Playfair Display',
+const CUSTOM_FIELDS: { key: keyof CustomTheme; label: string; hint?: string }[] = [
+  { key: 'pageColor', label: 'Page background' },
+  { key: 'pageColor2', label: 'Gradient end', hint: 'Match the page background for a solid color' },
+  { key: 'cardColor', label: 'Card background' },
+  { key: 'cardBorder', label: 'Card border' },
+  { key: 'textColor', label: 'Text' },
+  { key: 'textMuted', label: 'Muted text' },
 ]
 
 export function AppearanceEditor({ config }: AppearanceEditorProps) {
   const [theme, setTheme] = useState<ThemeName>(config.theme)
+  const [customTheme, setCustomTheme] = useState<CustomTheme>(config.customTheme || DEFAULT_CUSTOM_THEME)
   const [accentColor, setAccentColor] = useState(config.accentColor || '#6366f1')
   const [fontFamily, setFontFamily] = useState(config.fontFamily || 'Inter')
+
+  function setCt<K extends keyof CustomTheme>(key: K, value: CustomTheme[K]) {
+    setCustomTheme(prev => ({ ...prev, [key]: value }))
+  }
   const [linkLayout, setLinkLayout] = useState<LinkLayout>(config.linkLayout || 'list')
   const [buttonShape, setButtonShape] = useState<ButtonShape>(config.buttonShape || 'rounded')
   const [buttonFill, setButtonFill] = useState<ButtonFill>(config.buttonFill || 'solid')
@@ -44,7 +53,7 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        theme, accentColor, fontFamily,
+        theme, customTheme, accentColor, fontFamily,
         linkLayout, buttonShape, buttonFill,
         backgroundType, backgroundUrl, backgroundOverlay,
         customCss,
@@ -109,7 +118,60 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
                 )}
               </button>
             ))}
+
+            {/* Build your own */}
+            <button
+              onClick={() => setTheme('custom')}
+              className={`relative rounded-xl overflow-hidden border-2 transition-all text-left ${
+                theme === 'custom' ? 'border-primary shadow-lg scale-[1.02]' : 'border-border hover:border-muted-foreground'
+              }`}
+            >
+              <div
+                className="h-20 w-full p-3 flex items-center justify-center"
+                style={{
+                  background: customTheme.pageColor2 && customTheme.pageColor2 !== customTheme.pageColor
+                    ? `linear-gradient(160deg, ${customTheme.pageColor}, ${customTheme.pageColor2})`
+                    : customTheme.pageColor,
+                }}
+              >
+                <Paintbrush className="h-6 w-6" style={{ color: customTheme.textColor }} />
+              </div>
+              <div className="px-3 py-2 bg-background border-t border-border">
+                <p className="text-sm font-medium">Build your own</p>
+                <p className="text-xs text-muted-foreground">Custom colors</p>
+              </div>
+              {theme === 'custom' && (
+                <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                  <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                </div>
+              )}
+            </button>
           </div>
+
+          {/* Custom theme color pickers */}
+          {theme === 'custom' && (
+            <div className="mt-4 rounded-lg border border-border p-4 space-y-3">
+              <p className="text-sm font-medium">Custom theme colors</p>
+              {CUSTOM_FIELDS.map(f => (
+                <div key={f.key} className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm">{f.label}</p>
+                    {f.hint && <p className="text-xs text-muted-foreground">{f.hint}</p>}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs font-mono text-muted-foreground">{customTheme[f.key]}</span>
+                    <input
+                      type="color"
+                      aria-label={f.label}
+                      value={customTheme[f.key]}
+                      onChange={e => setCt(f.key, e.target.value)}
+                      className="h-9 w-12 rounded-md border border-input cursor-pointer p-1"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -142,11 +204,16 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
               <SelectTrigger id="font" className="w-60">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                {FONT_OPTIONS.map(f => (
-                  <SelectItem key={f} value={f} style={{ fontFamily: f }}>
-                    {f}
-                  </SelectItem>
+              <SelectContent className="max-h-72">
+                {(['Sans', 'Serif', 'Display'] as const).map(cat => (
+                  <div key={cat}>
+                    <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{cat}</p>
+                    {FONTS.filter(f => f.category === cat).map(f => (
+                      <SelectItem key={f.name} value={f.name} style={{ fontFamily: f.stack }}>
+                        {f.name}
+                      </SelectItem>
+                    ))}
+                  </div>
                 ))}
               </SelectContent>
             </Select>

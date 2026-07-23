@@ -65,6 +65,25 @@ export type ThemeName =
   | 'forest'
   | 'rose-quartz'
   | 'mono-dark'
+  | 'custom'
+
+export interface CustomTheme {
+  pageColor: string
+  pageColor2: string   // second gradient stop; if same as pageColor → solid
+  cardColor: string
+  cardBorder: string
+  textColor: string
+  textMuted: string
+}
+
+export const DEFAULT_CUSTOM_THEME: CustomTheme = {
+  pageColor: '#0f0c29',
+  pageColor2: '#302b63',
+  cardColor: '#1c1830',
+  cardBorder: '#38325c',
+  textColor: '#ffffff',
+  textMuted: '#b8b3d9',
+}
 
 export type LinkLayout = 'list' | 'grid'
 export type ButtonShape = 'rounded' | 'pill' | 'square'
@@ -85,6 +104,7 @@ export interface SiteConfig {
   socials: SocialLinks
   socialVisibility: SocialVisibility
   theme: ThemeName
+  customTheme: CustomTheme
   accentColor: string
   fontFamily: string
   customCss: string
@@ -136,6 +156,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     email: true,
   },
   theme: 'dark-gradient',
+  customTheme: DEFAULT_CUSTOM_THEME,
   accentColor: '#6366f1',
   fontFamily: 'Inter',
   customCss: '',
@@ -195,4 +216,5 @@ export const REDIS_KEYS = {
   analyticsCountries: 'analytics:countries',
   analyticsReferrers: 'analytics:referrers',
   analyticsLinkClicks: 'analytics:link_clicks',
+  requests: 'site:requests',
 } as const

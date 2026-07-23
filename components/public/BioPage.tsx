@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { SiteConfig, ContentBlock, deriveContent, isBlockLive } from '@/lib/config'
+import { fontStack } from '@/lib/fonts'
 import { DynamicIcon } from '@/components/admin/IconPicker'
 import {
   Github, Twitter, Linkedin, Instagram, Youtube, Mail,
@@ -108,21 +109,34 @@ export function BioPage({ config, themeClass }: BioPageProps) {
 
   const socialEntries = Object.entries(config.socials) as [keyof typeof config.socials, string][]
 
-  const fontMap: Record<string, string> = {
-    Inter: "'Inter', sans-serif",
-    Poppins: "'Poppins', sans-serif",
-    Roboto: "'Roboto', sans-serif",
-    Montserrat: "'Montserrat', sans-serif",
-    'Playfair Display': "'Playfair Display', serif",
-  }
-
   const hasMediaBg = config.backgroundType !== 'theme' && !!config.backgroundUrl
   const isGrid = config.linkLayout === 'grid'
+
+  // Custom theme → inline CSS variables that override the (empty) theme-custom
+  // class. Custom properties inherit, so all children pick them up.
+  const ct = config.customTheme
+  const customVars = config.theme === 'custom' && ct
+    ? {
+        '--page-bg': ct.pageColor2 && ct.pageColor2 !== ct.pageColor
+          ? `linear-gradient(160deg, ${ct.pageColor}, ${ct.pageColor2})`
+          : ct.pageColor,
+        '--card-bg': ct.cardColor,
+        '--card-border': ct.cardBorder,
+        '--card-hover-bg': ct.cardColor,
+        '--card-hover-border': ct.textColor,
+        '--text-primary': ct.textColor,
+        '--text-secondary': ct.textMuted,
+        '--social-bg': ct.cardColor,
+        '--social-hover': ct.cardBorder,
+        '--cta-bg': ct.cardColor,
+        '--cta-border': ct.cardBorder,
+      }
+    : {}
 
   return (
     <div
       className={`bio-page ${themeClass}`}
-      style={{ fontFamily: fontMap[config.fontFamily] || "'Inter', sans-serif", position: 'relative' }}
+      style={{ fontFamily: fontStack(config.fontFamily), position: 'relative', ...customVars } as React.CSSProperties}
     >
       {/* Owner-authored custom CSS */}
       {config.customCss && <style dangerouslySetInnerHTML={{ __html: config.customCss }} />}
