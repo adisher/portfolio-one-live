@@ -25,6 +25,7 @@ export function ProfileEditor({ config }: ProfileEditorProps) {
   const [borderColor, setBorderColor] = useState(config.avatarBorderColor || config.accentColor || '#6366f1')
   const [borderWidth, setBorderWidth] = useState(config.avatarBorderWidth || 4)
   const [padding, setPadding] = useState(config.avatarPadding || 6)
+  const [showVcard, setShowVcard] = useState(!!config.showVcard)
 
   const framed = bgEnabled || borderEnabled
   const previewBg = bgEnabled ? bgColor : undefined
@@ -41,6 +42,7 @@ export function ProfileEditor({ config }: ProfileEditorProps) {
         avatarBorderColor: borderEnabled ? borderColor : '',
         avatarBorderWidth: borderWidth,
         avatarPadding: framed ? padding : 0,
+        showVcard,
       }),
     })
     if (!res.ok) throw new Error('Save failed')
@@ -178,6 +180,16 @@ export function ProfileEditor({ config }: ProfileEditorProps) {
             placeholder="A short bio about yourself…"
             rows={3}
           />
+        </div>
+
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+          <div>
+            <p className="text-sm font-medium">“Save Contact” button</p>
+            <p className="text-xs text-muted-foreground">
+              Shows a button that downloads your details (name, email, socials) as a phone contact.
+            </p>
+          </div>
+          <Switch checked={showVcard} onCheckedChange={setShowVcard} />
         </div>
 
         <div className="flex justify-end">

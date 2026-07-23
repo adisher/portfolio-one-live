@@ -7,20 +7,13 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SaveButton } from '@/components/admin/SaveButton'
-import { Github, Twitter, Linkedin, Instagram, Youtube, Mail } from 'lucide-react'
+import { SOCIAL_META } from '@/components/public/socialConfig'
 
 interface SocialEditorProps {
   config: SiteConfig
 }
 
-const SOCIAL_FIELDS: { key: keyof SocialLinks; label: string; icon: React.ElementType; placeholder: string }[] = [
-  { key: 'github', label: 'GitHub', icon: Github, placeholder: 'https://github.com/username' },
-  { key: 'twitter', label: 'Twitter / X', icon: Twitter, placeholder: 'https://twitter.com/username' },
-  { key: 'linkedin', label: 'LinkedIn', icon: Linkedin, placeholder: 'https://linkedin.com/in/username' },
-  { key: 'instagram', label: 'Instagram', icon: Instagram, placeholder: 'https://instagram.com/username' },
-  { key: 'youtube', label: 'YouTube', icon: Youtube, placeholder: 'https://youtube.com/@channel' },
-  { key: 'email', label: 'Email', icon: Mail, placeholder: 'you@example.com' },
-]
+const SOCIAL_FIELDS = SOCIAL_META
 
 export function SocialEditor({ config }: SocialEditorProps) {
   const [socials, setSocials] = useState<SocialLinks>({ ...config.socials })

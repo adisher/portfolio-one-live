@@ -44,6 +44,12 @@ export interface SocialLinks {
   instagram: string
   youtube: string
   email: string
+  tiktok: string
+  threads: string
+  discord: string
+  twitch: string
+  whatsapp: string
+  facebook: string
 }
 
 export interface SocialVisibility {
@@ -53,6 +59,12 @@ export interface SocialVisibility {
   instagram: boolean
   youtube: boolean
   email: boolean
+  tiktok: boolean
+  threads: boolean
+  discord: boolean
+  twitch: boolean
+  whatsapp: boolean
+  facebook: boolean
 }
 
 export type ThemeName =
@@ -140,6 +152,10 @@ export interface SiteConfig {
   seoTitle: string
   seoDescription: string
   ogImageUrl: string
+  showVcard: boolean
+  gaMeasurementId: string
+  metaPixelId: string
+  tiktokPixelId: string
 }
 
 export const DEFAULT_CONFIG: SiteConfig = {
@@ -160,6 +176,12 @@ export const DEFAULT_CONFIG: SiteConfig = {
     instagram: '',
     youtube: '',
     email: '',
+    tiktok: '',
+    threads: '',
+    discord: '',
+    twitch: '',
+    whatsapp: '',
+    facebook: '',
   },
   socialVisibility: {
     github: true,
@@ -168,6 +190,12 @@ export const DEFAULT_CONFIG: SiteConfig = {
     instagram: true,
     youtube: true,
     email: true,
+    tiktok: true,
+    threads: true,
+    discord: true,
+    twitch: true,
+    whatsapp: true,
+    facebook: true,
   },
   theme: 'dark-gradient',
   customTheme: DEFAULT_CUSTOM_THEME,
@@ -194,6 +222,10 @@ export const DEFAULT_CONFIG: SiteConfig = {
   seoTitle: 'Your Name',
   seoDescription: 'Check out my links and connect with me.',
   ogImageUrl: '',
+  showVcard: false,
+  gaMeasurementId: '',
+  metaPixelId: '',
+  tiktokPixelId: '',
 }
 
 // Source of truth for the page body. Once the content editor has saved, use

@@ -7,10 +7,8 @@ import { SiteConfig, ContentBlock, deriveContent, isBlockLive } from '@/lib/conf
 import { fontStack } from '@/lib/fonts'
 import { themeTextIsLight } from '@/lib/themes'
 import { DynamicIcon } from '@/components/admin/IconPicker'
-import {
-  Github, Twitter, Linkedin, Instagram, Youtube, Mail,
-  ExternalLink,
-} from 'lucide-react'
+import { SOCIAL_META, socialHref } from '@/components/public/socialConfig'
+import { ExternalLink, Contact } from 'lucide-react'
 
 interface BioPageProps {
   config: SiteConfig
@@ -68,6 +66,30 @@ function trackLinkClick(linkId: string) {
   }).catch(() => {})
 }
 
+// Build a .vcf from the profile and trigger a download — pure client-side,
+// no backend needed.
+function downloadVcard(config: SiteConfig) {
+  const esc = (s: string) => s.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;')
+  const lines = ['BEGIN:VCARD', 'VERSION:3.0', `FN:${esc(config.name || '')}`]
+  if (config.tagline) lines.push(`TITLE:${esc(config.tagline)}`)
+  if (config.socials.email) lines.push(`EMAIL:${config.socials.email}`)
+  for (const s of SOCIAL_META) {
+    if (s.key !== 'email' && config.socials[s.key]) lines.push(`URL:${config.socials[s.key]}`)
+  }
+  if (typeof window !== 'undefined') lines.push(`URL:${window.location.origin}`)
+  if (config.bio) lines.push(`NOTE:${esc(config.bio)}`)
+  lines.push('END:VCARD')
+  const blob = new Blob([lines.join('\r\n')], { type: 'text/vcard;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${(config.name || 'contact').replace(/[^a-z0-9]+/gi, '-')}.vcf`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number = 0) => ({
@@ -84,15 +106,6 @@ const scaleIn = {
     scale: 1,
     transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
   },
-}
-
-const socialIconMap: Record<string, React.ElementType> = {
-  github: Github,
-  twitter: Twitter,
-  linkedin: Linkedin,
-  instagram: Instagram,
-  youtube: Youtube,
-  email: Mail,
 }
 
 export function BioPage({ config, themeClass }: BioPageProps) {
@@ -112,7 +125,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
     .filter(b => b.enabled && isBlockLive(b))
     .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
 
-  const socialEntries = Object.entries(config.socials) as [keyof typeof config.socials, string][]
+  const activeSocials = SOCIAL_META.filter(s => config.socials[s.key] && config.socialVisibility[s.key])
 
   const hasMediaBg = config.backgroundType !== 'theme' && !!config.backgroundUrl
   const isGrid = config.linkLayout === 'grid'
@@ -289,7 +302,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
         </motion.div>
 
         {/* Social icons */}
-        {config.showSocials && socialEntries.some(([key, val]) => val && config.socialVisibility[key]) && (
+        {config.showSocials && activeSocials.length > 0 && (
           <motion.div
             className="flex justify-center gap-3 mb-8 flex-wrap"
             variants={fadeUp}
@@ -297,17 +310,15 @@ export function BioPage({ config, themeClass }: BioPageProps) {
             animate="visible"
             custom={2}
           >
-            {socialEntries.map(([key, value]) => {
-              if (!value || !config.socialVisibility[key]) return null
-              const Icon = socialIconMap[key]
-              const href = key === 'email' ? `mailto:${value}` : value
+            {activeSocials.map(({ key, label, icon: Icon }) => {
+              const value = config.socials[key]
               return (
                 <motion.a
                   key={key}
-                  href={href}
+                  href={socialHref(key, value)}
                   target={key === 'email' ? undefined : '_blank'}
                   rel="noopener noreferrer"
-                  aria-label={key}
+                  aria-label={label}
                   className="bio-social-icon rounded-full w-10 h-10 flex items-center justify-center"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
@@ -316,6 +327,23 @@ export function BioPage({ config, themeClass }: BioPageProps) {
                 </motion.a>
               )
             })}
+          </motion.div>
+        )}
+
+        {/* Save Contact (vCard) */}
+        {config.showVcard && (
+          <motion.div
+            className="flex justify-center mb-8 -mt-2"
+            variants={fadeUp} initial="hidden" animate="visible" custom={2}
+          >
+            <button
+              type="button"
+              onClick={() => downloadVcard(config)}
+              className="bio-social-icon inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
+              style={{ color: 'var(--text-primary)', textShadow: mediaTextShadow }}
+            >
+              <Contact className="h-4 w-4" /> Save Contact
+            </button>
           </motion.div>
         )}
 

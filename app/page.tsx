@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getConfig } from '@/lib/redis'
 import { getThemeClass } from '@/lib/themes'
 import { BioPage } from '@/components/public/BioPage'
+import { TrackingScripts } from '@/components/public/TrackingScripts'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,5 +35,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HomePage() {
   const config = await getConfig()
   const themeClass = getThemeClass(config.theme)
-  return <BioPage config={config} themeClass={themeClass} />
+  return (
+    <>
+      <TrackingScripts
+        ga={config.gaMeasurementId}
+        meta={config.metaPixelId}
+        tiktok={config.tiktokPixelId}
+      />
+      <BioPage config={config} themeClass={themeClass} />
+    </>
+  )
 }

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, User, Link2, Share2, Palette, Layers,
-  Search, Settings, Menu, X, LogOut, ExternalLink,
+  Search, Settings, Menu, X, LogOut, ExternalLink, Plug,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ const navItems = [
   { href: '/admin/appearance', label: 'Appearance', icon: Palette },
   { href: '/admin/sections', label: 'Sections', icon: Layers },
   { href: '/admin/seo', label: 'SEO', icon: Search },
+  { href: '/admin/integrations', label: 'Integrations', icon: Plug },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
