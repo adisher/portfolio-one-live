@@ -6,7 +6,7 @@ import {
   useSensor, useSensors, DragEndEvent,
 } from '@dnd-kit/core'
 import {
-  arrayMove, SortableContext, sortableKeyboardCoordinates,
+  SortableContext, sortableKeyboardCoordinates,
   useSortable, verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -80,14 +80,39 @@ function rowSummary(b: ContentBlock): { primary: string; secondary: string } {
   }
 }
 
+// Which ids move together when `activeBlock` is dragged:
+//  - a header carries its whole section (header + following non-header blocks)
+//  - a block that is the ONLY item under a header carries that header too
+//    (keeps auto-header pairs bonded), otherwise it moves on its own.
+function computeGroupIds(blocks: ContentBlock[], activeBlock: ContentBlock): string[] {
+  const idx = blocks.findIndex(b => b.id === activeBlock.id)
+  if (idx < 0) return [activeBlock.id]
+
+  if (activeBlock.type === 'header') {
+    const ids = [activeBlock.id]
+    for (let i = idx + 1; i < blocks.length && blocks[i].type !== 'header'; i++) ids.push(blocks[i].id)
+    return ids
+  }
+
+  // nearest header above → start of this section
+  let h = idx - 1
+  while (h >= 0 && blocks[h].type !== 'header') h--
+  const start = h >= 0 ? h + 1 : 0
+  let end = idx
+  for (let i = idx + 1; i < blocks.length && blocks[i].type !== 'header'; i++) end = i
+  const itemCount = end - start + 1
+  return h >= 0 && itemCount === 1 ? [blocks[h].id, activeBlock.id] : [activeBlock.id]
+}
+
 interface SortableRowProps {
   block: ContentBlock
+  indent?: boolean
   onEdit: (b: ContentBlock) => void
   onDelete: (id: string) => void
   onToggle: (id: string, enabled: boolean) => void
 }
 
-function SortableRow({ block, onEdit, onDelete, onToggle }: SortableRowProps) {
+function SortableRow({ block, indent, onEdit, onDelete, onToggle }: SortableRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
   const { primary, secondary } = rowSummary(block)
@@ -97,7 +122,9 @@ function SortableRow({ block, onEdit, onDelete, onToggle }: SortableRowProps) {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 rounded-lg border border-border bg-card p-3"
+      className={`flex items-center gap-3 rounded-lg border border-border bg-card p-3 ${
+        indent ? 'ml-5 border-l-2 border-l-primary/40' : ''
+      }`}
     >
       <button
         {...attributes}
@@ -538,13 +565,22 @@ export function LinksEditor({ config }: LinksEditorProps) {
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
-    if (over && active.id !== over.id) {
-      setBlocks(prev => {
-        const oldIndex = prev.findIndex(l => l.id === active.id)
-        const newIndex = prev.findIndex(l => l.id === over.id)
-        return arrayMove(prev, oldIndex, newIndex).map((l, i) => ({ ...l, order: i }))
-      })
-    }
+    if (!over || active.id === over.id) return
+    setBlocks(prev => {
+      const activeBlock = prev.find(b => b.id === active.id)
+      if (!activeBlock) return prev
+      const group = computeGroupIds(prev, activeBlock)
+      if (group.includes(over.id as string)) return prev // dropped within its own group
+
+      const oldIndex = prev.findIndex(b => b.id === active.id)
+      const newIndex = prev.findIndex(b => b.id === over.id)
+      const groupBlocks = group.map(id => prev.find(b => b.id === id)!)
+      const without = prev.filter(b => !group.includes(b.id))
+      let target = without.findIndex(b => b.id === over.id)
+      if (oldIndex < newIndex) target += 1 // moving down → drop after the target
+      const result = [...without.slice(0, target), ...groupBlocks, ...without.slice(target)]
+      return result.map((b, i) => ({ ...b, order: i }))
+    })
   }
 
   function handleEdit(block: ContentBlock) {
@@ -627,15 +663,23 @@ export function LinksEditor({ config }: LinksEditorProps) {
                 Nothing here yet. Add a block below to get started.
               </p>
             )}
-            {blocks.map(block => (
-              <SortableRow
-                key={block.id}
-                block={block}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onToggle={handleToggle}
-              />
-            ))}
+            {(() => {
+              let underHeader = false
+              return blocks.map(block => {
+                if (block.type === 'header') underHeader = true
+                const indent = underHeader && block.type !== 'header'
+                return (
+                  <SortableRow
+                    key={block.id}
+                    block={block}
+                    indent={indent}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onToggle={handleToggle}
+                  />
+                )
+              })
+            })()}
           </SortableContext>
         </DndContext>
 
