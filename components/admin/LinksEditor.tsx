@@ -6,7 +6,7 @@ import {
   useSensor, useSensors, DragEndEvent,
 } from '@dnd-kit/core'
 import {
-  SortableContext, sortableKeyboardCoordinates,
+  arrayMove, SortableContext, sortableKeyboardCoordinates,
   useSortable, verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -80,39 +80,47 @@ function rowSummary(b: ContentBlock): { primary: string; secondary: string } {
   }
 }
 
-// Which ids move together when `activeBlock` is dragged:
-//  - a header carries its whole section (header + following non-header blocks)
-//  - a block that is the ONLY item under a header carries that header too
-//    (keeps auto-header pairs bonded), otherwise it moves on its own.
-function computeGroupIds(blocks: ContentBlock[], activeBlock: ContentBlock): string[] {
-  const idx = blocks.findIndex(b => b.id === activeBlock.id)
-  if (idx < 0) return [activeBlock.id]
+// A section = an optional leading header plus the blocks that follow it until
+// the next header. The leading run of blocks before any header is the "__lead__"
+// section. Sections are the unit that drags as a whole.
+interface Section {
+  id: string
+  header: ContentBlock | null
+  items: ContentBlock[]
+}
 
-  if (activeBlock.type === 'header') {
-    const ids = [activeBlock.id]
-    for (let i = idx + 1; i < blocks.length && blocks[i].type !== 'header'; i++) ids.push(blocks[i].id)
-    return ids
+function toSections(blocks: ContentBlock[]): Section[] {
+  const sections: Section[] = []
+  let cur: Section = { id: '__lead__', header: null, items: [] }
+  for (const b of blocks) {
+    if (b.type === 'header') {
+      if (cur.header || cur.items.length) sections.push(cur)
+      cur = { id: b.id, header: b, items: [] }
+    } else {
+      cur.items.push(b)
+    }
   }
+  if (cur.header || cur.items.length) sections.push(cur)
+  return sections
+}
 
-  // nearest header above → start of this section
-  let h = idx - 1
-  while (h >= 0 && blocks[h].type !== 'header') h--
-  const start = h >= 0 ? h + 1 : 0
-  let end = idx
-  for (let i = idx + 1; i < blocks.length && blocks[i].type !== 'header'; i++) end = i
-  const itemCount = end - start + 1
-  return h >= 0 && itemCount === 1 ? [blocks[h].id, activeBlock.id] : [activeBlock.id]
+function fromSections(sections: Section[]): ContentBlock[] {
+  const out: ContentBlock[] = []
+  for (const s of sections) {
+    if (s.header) out.push(s.header)
+    out.push(...s.items)
+  }
+  return out.map((b, i) => ({ ...b, order: i }))
 }
 
 interface SortableRowProps {
   block: ContentBlock
-  indent?: boolean
   onEdit: (b: ContentBlock) => void
   onDelete: (id: string) => void
   onToggle: (id: string, enabled: boolean) => void
 }
 
-function SortableRow({ block, indent, onEdit, onDelete, onToggle }: SortableRowProps) {
+function SortableRow({ block, onEdit, onDelete, onToggle }: SortableRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
   const { primary, secondary } = rowSummary(block)
@@ -122,9 +130,7 @@ function SortableRow({ block, indent, onEdit, onDelete, onToggle }: SortableRowP
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 rounded-lg border border-border bg-card p-3 ${
-        indent ? 'ml-5 border-l-2 border-l-primary/40' : ''
-      }`}
+      className="flex items-center gap-3 rounded-lg border border-border bg-card p-3"
     >
       <button
         {...attributes}
@@ -182,6 +188,87 @@ function SortableRow({ block, indent, onEdit, onDelete, onToggle }: SortableRowP
       >
         <Trash2 className="h-4 w-4" />
       </Button>
+    </div>
+  )
+}
+
+interface SortableSectionProps {
+  section: Section
+  sensors: ReturnType<typeof useSensors>
+  onEdit: (b: ContentBlock) => void
+  onDelete: (id: string) => void
+  onToggle: (id: string, enabled: boolean) => void
+  onItemsReorder: (sectionId: string, items: ContentBlock[]) => void
+}
+
+// One draggable group: the header + its sub-cards move together as a unit. The
+// sub-cards reorder among themselves via a nested drag context.
+function SortableSection({ section, sensors, onEdit, onDelete, onToggle, onItemsReorder }: SortableSectionProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: section.id })
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.55 : 1 }
+  const header = section.header
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="rounded-xl border border-border bg-muted/40 p-2 space-y-2"
+    >
+      {/* Section bar — grip drags the whole group */}
+      <div className="flex items-center gap-2 px-1">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
+          aria-label="Drag whole section"
+        >
+          <GripVertical className="h-5 w-5" />
+        </button>
+        {header ? (
+          <>
+            <Heading className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <p className="flex-1 min-w-0 text-sm font-semibold truncate">{header.text || 'Section header'}</p>
+            <Switch checked={header.enabled} onCheckedChange={c => onToggle(header.id, c)} aria-label="Toggle header" />
+            <Button variant="ghost" size="icon" onClick={() => onEdit(header)} aria-label="Edit header">
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost" size="icon"
+              onClick={() => onDelete(header.id)}
+              className="text-destructive hover:text-destructive"
+              aria-label="Delete header"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <p className="flex-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Ungrouped</p>
+        )}
+      </div>
+
+      {/* Sub-cards — nested sortable, reorder within this section only */}
+      {section.items.length > 0 && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={e => {
+            const { active, over } = e
+            if (over && active.id !== over.id) {
+              const oldI = section.items.findIndex(i => i.id === active.id)
+              const newI = section.items.findIndex(i => i.id === over.id)
+              if (oldI >= 0 && newI >= 0) onItemsReorder(section.id, arrayMove(section.items, oldI, newI))
+            }
+          }}
+        >
+          <SortableContext items={section.items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2 pl-2">
+              {section.items.map(item => (
+                <SortableRow key={item.id} block={item} onEdit={onEdit} onDelete={onDelete} onToggle={onToggle} />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
     </div>
   )
 }
@@ -563,23 +650,24 @@ export function LinksEditor({ config }: LinksEditorProps) {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
-  function handleDragEnd(event: DragEndEvent) {
+  // Reorder whole sections (header + its sub-cards move as one unit).
+  function handleSectionDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
     setBlocks(prev => {
-      const activeBlock = prev.find(b => b.id === active.id)
-      if (!activeBlock) return prev
-      const group = computeGroupIds(prev, activeBlock)
-      if (group.includes(over.id as string)) return prev // dropped within its own group
+      const secs = toSections(prev)
+      const oldI = secs.findIndex(s => s.id === active.id)
+      const newI = secs.findIndex(s => s.id === over.id)
+      if (oldI < 0 || newI < 0) return prev
+      return fromSections(arrayMove(secs, oldI, newI))
+    })
+  }
 
-      const oldIndex = prev.findIndex(b => b.id === active.id)
-      const newIndex = prev.findIndex(b => b.id === over.id)
-      const groupBlocks = group.map(id => prev.find(b => b.id === id)!)
-      const without = prev.filter(b => !group.includes(b.id))
-      let target = without.findIndex(b => b.id === over.id)
-      if (oldIndex < newIndex) target += 1 // moving down → drop after the target
-      const result = [...without.slice(0, target), ...groupBlocks, ...without.slice(target)]
-      return result.map((b, i) => ({ ...b, order: i }))
+  // Reorder sub-cards within a single section.
+  function handleItemsReorder(sectionId: string, items: ContentBlock[]) {
+    setBlocks(prev => {
+      const secs = toSections(prev).map(s => (s.id === sectionId ? { ...s, items } : s))
+      return fromSections(secs)
     })
   }
 
@@ -649,37 +737,35 @@ export function LinksEditor({ config }: LinksEditorProps) {
     if (!res.ok) throw new Error('Save failed')
   }
 
+  const sections = toSections(blocks)
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Content</CardTitle>
-        <CardDescription>Links, headers, videos, music and embeds — drag to reorder.</CardDescription>
+        <CardDescription>Drag a group by its top handle to move it as a whole; drag a card inside to reorder within the group.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={blocks.map(l => l.id)} strategy={verticalListSortingStrategy}>
-            {blocks.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Nothing here yet. Add a block below to get started.
-              </p>
-            )}
-            {(() => {
-              let underHeader = false
-              return blocks.map(block => {
-                if (block.type === 'header') underHeader = true
-                const indent = underHeader && block.type !== 'header'
-                return (
-                  <SortableRow
-                    key={block.id}
-                    block={block}
-                    indent={indent}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onToggle={handleToggle}
-                  />
-                )
-              })
-            })()}
+        {blocks.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            Nothing here yet. Add a block below to get started.
+          </p>
+        )}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
+          <SortableContext items={sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-3">
+              {sections.map(section => (
+                <SortableSection
+                  key={section.id}
+                  section={section}
+                  sensors={sensors}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onToggle={handleToggle}
+                  onItemsReorder={handleItemsReorder}
+                />
+              ))}
+            </div>
           </SortableContext>
         </DndContext>
 
