@@ -13,6 +13,9 @@ import { ExternalLink, Contact } from 'lucide-react'
 interface BioPageProps {
   config: SiteConfig
   themeClass: string
+  /** Rendering inside the admin preview frame: skip analytics and keep
+   *  background layers inside the frame instead of covering the viewport. */
+  preview?: boolean
 }
 
 function getYouTubeEmbedUrl(url: string): string {
@@ -108,7 +111,7 @@ const scaleIn = {
   },
 }
 
-export function BioPage({ config, themeClass }: BioPageProps) {
+export function BioPage({ config, themeClass, preview = false }: BioPageProps) {
   const [ageGateBlock, setAgeGateBlock] = useState<ContentBlock | null>(null)
   // Background-video orientation, detected from its metadata. Portrait videos
   // cover the full page (reveal on scroll); landscape videos show at their
@@ -116,8 +119,8 @@ export function BioPage({ config, themeClass }: BioPageProps) {
   const [bgVideoLandscape, setBgVideoLandscape] = useState(false)
 
   useEffect(() => {
-    trackPageView()
-  }, [])
+    if (!preview) trackPageView()
+  }, [preview])
 
   // Unified content list: enabled blocks within their schedule window, with
   // featured links floated to the top (stable sort preserves order otherwise).
@@ -134,13 +137,16 @@ export function BioPage({ config, themeClass }: BioPageProps) {
   const videoFit = config.backgroundVideoFit || 'auto'
   const videoPinned = videoFit === 'pinned'                                   // fixed cover, content scrolls over
   const videoNatural = videoFit === 'natural' || (videoFit === 'auto' && bgVideoLandscape) // aspect kept, scrolls up
+  // In the preview frame, `fixed` would escape the phone mockup and cover the
+  // whole admin screen — pin to the frame instead.
+  const pinPos = preview ? 'absolute' : 'fixed'
   const videoClass = videoPinned
-    ? 'fixed inset-0 h-full w-full object-cover'
+    ? `${pinPos} inset-0 h-full w-full object-cover`
     : videoNatural
       ? 'absolute top-0 left-0 w-full h-auto'
       : 'absolute inset-0 h-full w-full object-cover'
   // Overlay must sit in the same positioning context as the media it dims.
-  const overlayPos = config.backgroundType === 'video' && !videoPinned ? 'absolute' : 'fixed'
+  const overlayPos = config.backgroundType === 'video' && !videoPinned ? 'absolute' : pinPos
 
   // Readability scrim. In 'auto', the scrim is the OPPOSITE of the theme's
   // text (dark scrim for light text, light scrim for dark text) so text over
@@ -200,7 +206,7 @@ export function BioPage({ config, themeClass }: BioPageProps) {
           device/orientation with no letterbox bars. */}
       {hasMediaBg && config.backgroundType === 'image' && (
         <div
-          className="fixed inset-0 z-0 bg-cover bg-center"
+          className={`${pinPos} inset-0 z-0 bg-cover bg-center`}
           style={{ backgroundImage: `url(${config.backgroundUrl})` }}
           aria-hidden
         />

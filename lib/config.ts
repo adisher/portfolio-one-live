@@ -160,6 +160,7 @@ export interface SiteConfig {
   gaMeasurementId: string
   metaPixelId: string
   tiktokPixelId: string
+  onboardingDone: boolean // false → first login lands in the setup wizard
 }
 
 export const DEFAULT_CONFIG: SiteConfig = {
@@ -230,6 +231,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   gaMeasurementId: '',
   metaPixelId: '',
   tiktokPixelId: '',
+  onboardingDone: false,
 }
 
 // Source of truth for the page body. Once the content editor has saved, use
@@ -250,6 +252,16 @@ export function deriveContent(config: SiteConfig): ContentBlock[] {
       url: l.url,
       icon: l.icon,
     }))
+}
+
+// A site nobody has customised yet. Used to decide whether to open the
+// first-run wizard — existing installs (which predate `onboardingDone`) look
+// configured, so they're never dropped back into onboarding.
+export function isFreshSite(config: SiteConfig): boolean {
+  const hasContent = (config.content?.length ?? 0) > 0 || (config.links?.length ?? 0) > 0
+  const hasSocial = Object.values(config.socials ?? {}).some(v => !!v)
+  const isNamed = !!config.name && config.name !== DEFAULT_CONFIG.name
+  return !hasContent && !hasSocial && !isNamed && !config.avatarUrl
 }
 
 // True when a scheduled block should be visible right now.

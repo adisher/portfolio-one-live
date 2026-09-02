@@ -1,7 +1,9 @@
+import { redirect } from 'next/navigation'
 import { getAnalytics } from '@/lib/redis'
 import { getConfig } from '@/lib/redis'
 import { DashboardClient } from '@/components/admin/DashboardClient'
 import { SetupChecklist } from '@/components/admin/SetupChecklist'
+import { isFreshSite } from '@/lib/config'
 import type { AnalyticsData } from '@/lib/redis'
 
 export const dynamic = 'force-dynamic'
@@ -85,6 +87,11 @@ function mergeWithDummy(real: AnalyticsData, dummy: AnalyticsData): AnalyticsDat
 
 export default async function DashboardPage() {
   const [analytics, config] = await Promise.all([getAnalytics(), getConfig()])
+
+  // A brand-new site lands in the guided setup instead of a cold analytics
+  // screen. Already-configured installs are never pulled back into it.
+  if (!config.onboardingDone && isFreshSite(config)) redirect('/admin/start')
+
   const displayAnalytics = mergeWithDummy(analytics, generateDummyAnalytics())
 
   return (

@@ -260,6 +260,11 @@ html {
   box-shadow: 0 0 8px rgba(0, 255, 136, 0.08);
 }
 
+/* Inside the admin preview frame the page fills the frame, not the viewport */
+.bio-preview .bio-page {
+  min-height: 100%;
+}
+
 /* ─── Button shape & fill (link cards) ─────────────────────────────────────── */
 .bio-link-card.shape-rounded { border-radius: 0.75rem; }
 .bio-link-card.shape-pill    { border-radius: 9999px; }

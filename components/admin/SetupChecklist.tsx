@@ -96,6 +96,11 @@ export function SetupChecklist({ config }: SetupChecklistProps) {
             ))}
           </div>
         )}
+        <div className="pt-2">
+          <Link href="/admin/start" className="text-xs text-primary hover:underline underline-offset-4">
+            Or walk through the guided setup →
+          </Link>
+        </div>
       </CardContent>
     </Card>
   )
