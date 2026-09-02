@@ -18,6 +18,7 @@ const SOCIAL_FIELDS = SOCIAL_META
 export function SocialEditor({ config }: SocialEditorProps) {
   const [socials, setSocials] = useState<SocialLinks>({ ...config.socials })
   const [visibility, setVisibility] = useState<SocialVisibility>({ ...config.socialVisibility })
+  const [showSocials, setShowSocials] = useState(config.showSocials)
 
   function updateSocial(key: keyof SocialLinks, value: string) {
     setSocials(prev => ({ ...prev, [key]: value }))
@@ -31,7 +32,7 @@ export function SocialEditor({ config }: SocialEditorProps) {
     const res = await fetch('/api/admin/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ socials, socialVisibility: visibility }),
+      body: JSON.stringify({ socials, socialVisibility: visibility, showSocials }),
     })
     if (!res.ok) throw new Error('Save failed')
   }
@@ -42,6 +43,14 @@ export function SocialEditor({ config }: SocialEditorProps) {
         <CardTitle>Social Profiles</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+          <div>
+            <p className="text-sm font-medium">Show social icons</p>
+            <p className="text-xs text-muted-foreground">Display the icon row on your public page.</p>
+          </div>
+          <Switch checked={showSocials} onCheckedChange={setShowSocials} />
+        </div>
+
         {SOCIAL_FIELDS.map(({ key, label, icon: Icon, placeholder }) => (
           <div key={key} className="flex items-center gap-4">
             <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
