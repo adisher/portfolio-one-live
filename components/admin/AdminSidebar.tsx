@@ -4,20 +4,19 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
-  LayoutDashboard, User, Link2, Share2, Palette, Layers,
-  Search, Settings, Menu, X, LogOut, ExternalLink, Plug,
+  LayoutDashboard, User, Link2, Palette,
+  Settings, Menu, X, LogOut, ExternalLink, Plug,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
+// Six destinations. Social lives inside Profile, SEO inside Settings, and the
+// old "Sections" page is gone — its pieces moved into Content.
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { href: '/admin/profile', label: 'Profile', icon: User },
   { href: '/admin/links', label: 'Content', icon: Link2 },
-  { href: '/admin/social', label: 'Social Profiles', icon: Share2 },
+  { href: '/admin/profile', label: 'Profile', icon: User },
   { href: '/admin/appearance', label: 'Appearance', icon: Palette },
-  { href: '/admin/sections', label: 'Sections', icon: Layers },
-  { href: '/admin/seo', label: 'SEO', icon: Search },
   { href: '/admin/integrations', label: 'Integrations', icon: Plug },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]

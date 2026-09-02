@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SaveButton } from '@/components/admin/SaveButton'
 import { ImageUpload } from '@/components/admin/ImageUpload'
+import { AdvancedPanel } from '@/components/admin/AdvancedPanel'
 import { Check } from 'lucide-react'
 
 interface AppearanceEditorProps {
@@ -224,6 +225,11 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
         </CardContent>
       </Card>
 
+      {/* Everything below is opt-in detail — kept out of the way by default. */}
+      <AdvancedPanel
+        title="Advanced appearance"
+        description="Layout, button styles, custom background and CSS."
+      >
       {/* Layout & Buttons */}
       <Card>
         <CardHeader>
@@ -367,6 +373,7 @@ export function AppearanceEditor({ config }: AppearanceEditorProps) {
           />
         </CardContent>
       </Card>
+      </AdvancedPanel>
 
       <div className="flex justify-end">
         <SaveButton onSave={save} />

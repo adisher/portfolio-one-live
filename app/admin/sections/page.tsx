@@ -1,17 +1,7 @@
-import { getConfig } from '@/lib/redis'
-import { SectionsEditor } from '@/components/admin/SectionsEditor'
+import { redirect } from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
-
-export default async function SectionsPage() {
-  const config = await getConfig()
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Sections</h1>
-        <p className="text-muted-foreground mt-1">Toggle which sections appear on your public page.</p>
-      </div>
-      <SectionsEditor config={config} />
-    </div>
-  )
+// The Sections page is retired — its content toggles and CTA banner moved
+// into Content (under Advanced), and the video is now a Video block.
+export default function SectionsPage() {
+  redirect('/admin/links')
 }

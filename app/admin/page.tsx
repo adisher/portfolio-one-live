@@ -1,6 +1,7 @@
 import { getAnalytics } from '@/lib/redis'
 import { getConfig } from '@/lib/redis'
 import { DashboardClient } from '@/components/admin/DashboardClient'
+import { SetupChecklist } from '@/components/admin/SetupChecklist'
 import type { AnalyticsData } from '@/lib/redis'
 
 export const dynamic = 'force-dynamic'
@@ -92,6 +93,7 @@ export default async function DashboardPage() {
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground mt-1">Your page analytics at a glance.</p>
       </div>
+      <SetupChecklist config={config} />
       <DashboardClient analytics={displayAnalytics} config={config} />
     </div>
   )

@@ -1,17 +1,6 @@
-import { getConfig } from '@/lib/redis'
-import { SocialEditor } from '@/components/admin/SocialEditor'
+import { redirect } from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
-
-export default async function SocialPage() {
-  const config = await getConfig()
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Social Profiles</h1>
-        <p className="text-muted-foreground mt-1">Manage your social media links and visibility.</p>
-      </div>
-      <SocialEditor config={config} />
-    </div>
-  )
+// Social profiles now live inside the Profile page.
+export default function SocialPage() {
+  redirect('/admin/profile')
 }
