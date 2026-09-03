@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   type SiteConfig, type ContentBlock, type ThemeName, type SocialLinks,
-  deriveContent,
+  deriveContent, isFreshSite,
 } from '@/lib/config'
 import { THEMES, getThemeClass } from '@/lib/themes'
 import { FONTS } from '@/lib/fonts'
@@ -23,13 +23,38 @@ interface SetupWizardProps {
   config: SiteConfig
 }
 
-const STEPS = [
-  { title: 'Who are you?', subtitle: 'The basics people see first.' },
-  { title: 'Add your links', subtitle: 'The places you want to send people.' },
-  { title: 'Your socials', subtitle: 'Shown as icons under your name.' },
-  { title: 'Pick a look', subtitle: 'You can fine-tune this later.' },
-  { title: "You're live!", subtitle: 'Your page is ready to share.' },
-]
+// The same five steps read differently depending on whether this is a first
+// run or someone revisiting a page they've already built.
+function steps(fresh: boolean) {
+  return [
+    { title: 'Who are you?', subtitle: 'The basics people see first.' },
+    {
+      title: fresh ? 'Add your links' : 'Your links',
+      subtitle: fresh
+        ? 'The places you want to send people.'
+        : 'Edit titles and URLs. Everything else stays as you set it.',
+    },
+    { title: 'Your socials', subtitle: 'Shown as icons under your name.' },
+    { title: 'Pick a look', subtitle: 'You can fine-tune this later.' },
+    fresh
+      ? { title: "You're live!", subtitle: 'Your page is ready to share.' }
+      : { title: 'All updated', subtitle: 'Your changes are saved.' },
+  ]
+}
+
+// Anything the wizard doesn't ask about but the block is carrying. Shown so a
+// row that looks like a plain title/URL pair isn't deleted by surprise.
+function blockExtras(block: ContentBlock | undefined): string[] {
+  if (!block) return []
+  const out: string[] = []
+  if (block.thumbnailUrl) out.push('image')
+  if (block.thumbBgColor || block.thumbBorderColor) out.push('styling')
+  if (block.featured) out.push('featured')
+  if (block.startAt || block.endAt) out.push('scheduled')
+  if (block.price) out.push('price')
+  if (block.ageGate) out.push('age gate')
+  return out
+}
 
 // Only the most common networks here — the rest live in Profile.
 const WIZARD_SOCIALS = SOCIAL_META.filter(s =>
@@ -50,7 +75,12 @@ export function SetupWizard({ config }: SetupWizardProps) {
   const [busy, setBusy] = useState(false)
   const [draft, setDraft] = useState<SiteConfig>(config)
 
+  const fresh = isFreshSite(config)
+  const STEPS = steps(fresh)
   const existingLinks = deriveContent(config).filter(b => b.type === 'link')
+  // Extras are read from the config as it was on entry — a row created during
+  // this session has none by definition.
+  const blockById = new Map(deriveContent(config).map(b => [b.id, b]))
   const [rows, setRows] = useState<LinkRow[]>(
     existingLinks.length
       ? existingLinks.map(b => ({ id: b.id, title: b.title ?? '', url: b.url ?? '' }))
@@ -59,6 +89,20 @@ export function SetupWizard({ config }: SetupWizardProps) {
 
   function patchDraft(patch: Partial<SiteConfig>) {
     setDraft(d => ({ ...d, ...patch }))
+  }
+
+  // Removing a row deletes the whole block, including the parts this screen
+  // doesn't show — so confirm when there's something to lose.
+  function removeRow(index: number, extras: string[]) {
+    if (extras.length > 0) {
+      const label = rows[index].title.trim() || 'this link'
+      const ok = window.confirm(
+        `Delete “${label}”?\n\nIt also has: ${extras.join(', ')}. ` +
+        `Deleting it here removes all of that too.`,
+      )
+      if (!ok) return
+    }
+    setRows(r => r.filter((_, j) => j !== index))
   }
 
   async function persist(patch: Partial<SiteConfig>) {
@@ -193,27 +237,45 @@ export function SetupWizard({ config }: SetupWizardProps) {
             {/* Step 2 — links */}
             {step === 1 && (
               <>
-                {rows.map((row, i) => (
-                  <div key={i} className="flex items-end gap-2">
-                    <div className="flex-1 space-y-1">
-                      <Label className="text-xs">Title</Label>
-                      <Input value={row.title} placeholder="My Portfolio"
-                        onChange={e => setRows(r => r.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} />
+                {rows.map((row, i) => {
+                  const extras = blockExtras(row.id ? blockById.get(row.id) : undefined)
+                  return (
+                    <div key={row.id ?? `new-${i}`} className="space-y-1.5">
+                      <div className="flex items-end gap-2">
+                        <div className="flex-1 space-y-1">
+                          <Label className="text-xs">Title</Label>
+                          <Input value={row.title} placeholder="My Portfolio"
+                            onChange={e => setRows(r => r.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <Label className="text-xs">URL</Label>
+                          <Input value={row.url} placeholder="https://example.com"
+                            onChange={e => setRows(r => r.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} />
+                        </div>
+                        {rows.length > 1 && (
+                          <Button variant="ghost" size="icon" aria-label="Remove link"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => removeRow(i, extras)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      {extras.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 pl-0.5">
+                          {extras.map(x => (
+                            <span key={x}
+                              className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                              {x}
+                            </span>
+                          ))}
+                          <span className="text-[11px] text-muted-foreground">
+                            — kept as-is; edit in Content
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <Label className="text-xs">URL</Label>
-                      <Input value={row.url} placeholder="https://example.com"
-                        onChange={e => setRows(r => r.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} />
-                    </div>
-                    {rows.length > 1 && (
-                      <Button variant="ghost" size="icon" aria-label="Remove link"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => setRows(r => r.filter((_, j) => j !== i))}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
+                  )
+                })}
                 {rows.length < 6 && (
                   <Button variant="outline" size="sm" className="gap-1.5"
                     onClick={() => setRows(r => [...r, { title: '', url: '' }])}>
@@ -297,8 +359,9 @@ export function SetupWizard({ config }: SetupWizardProps) {
                   <PartyPopper className="h-6 w-6 text-green-500" />
                 </div>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                  Your page is set up. You can keep refining it any time — the dashboard
-                  shows what’s left, and every option lives in the panels on the left.
+                  {fresh
+                    ? 'Your page is set up. You can keep refining it any time — the dashboard shows what’s left, and every option lives in the panels on the left.'
+                    : 'Your changes are live. Anything this walkthrough doesn’t cover — thumbnails, backgrounds, SEO, embeds — lives in the panels on the left.'}
                 </p>
               </div>
             )}
@@ -318,7 +381,7 @@ export function SetupWizard({ config }: SetupWizardProps) {
             {!isLast && (
               <>
                 <Button variant="ghost" onClick={() => complete('/admin')} disabled={busy}>
-                  Skip setup
+                  {fresh ? 'Skip setup' : 'Exit'}
                 </Button>
                 <Button onClick={goNext} disabled={busy} className="gap-1.5 min-w-[110px]">
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Continue <ArrowRight className="h-4 w-4" /></>}
@@ -347,6 +410,13 @@ export function SetupWizard({ config }: SetupWizardProps) {
             <BioPage config={draft} themeClass={getThemeClass(draft.theme)} preview />
           </div>
         </div>
+        {/* Link rows live in local state until they're saved, so unlike the
+            other steps the preview can't follow them keystroke-by-keystroke. */}
+        <p className="mt-3 text-center text-xs text-muted-foreground max-w-[320px] mx-auto">
+          {step === 1
+            ? 'Press Continue to save your links and see them here.'
+            : 'Updates as you type.'}
+        </p>
       </div>
     </div>
   )
