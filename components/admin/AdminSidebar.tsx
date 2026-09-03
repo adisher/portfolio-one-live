@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, User, Link2, Palette,
-  Settings, Menu, X, LogOut, ExternalLink, Plug,
+  Settings, Menu, X, LogOut, ExternalLink, Plug, Wand2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -70,6 +70,21 @@ export function AdminSidebar() {
 
       {/* Footer actions */}
       <div className="px-3 py-4 border-t border-border space-y-1">
+        {/* Always reachable — the dashboard checklist hides itself once setup
+            is complete, so the wizard needs an entry point that doesn't. */}
+        <Link
+          href="/admin/start"
+          onClick={() => setMobileOpen(false)}
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+            pathname === '/admin/start'
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+          )}
+        >
+          <Wand2 className="h-4 w-4 shrink-0" />
+          Guided Setup
+        </Link>
         <Link
           href="/"
           target="_blank"

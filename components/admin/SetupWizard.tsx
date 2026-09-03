@@ -40,7 +40,9 @@ function generateId(): string {
   return Math.random().toString(36).slice(2, 10)
 }
 
-interface LinkRow { title: string; url: string }
+// `id` ties a row back to the block it came from, so re-running the wizard on
+// an existing site edits those blocks in place instead of recreating them.
+interface LinkRow { id?: string; title: string; url: string }
 
 export function SetupWizard({ config }: SetupWizardProps) {
   const router = useRouter()
@@ -51,7 +53,7 @@ export function SetupWizard({ config }: SetupWizardProps) {
   const existingLinks = deriveContent(config).filter(b => b.type === 'link')
   const [rows, setRows] = useState<LinkRow[]>(
     existingLinks.length
-      ? existingLinks.map(b => ({ title: b.title ?? '', url: b.url ?? '' }))
+      ? existingLinks.map(b => ({ id: b.id, title: b.title ?? '', url: b.url ?? '' }))
       : [{ title: '', url: '' }],
   )
 
@@ -78,14 +80,36 @@ export function SetupWizard({ config }: SetupWizardProps) {
           name: draft.name, tagline: draft.tagline, bio: draft.bio, avatarUrl: draft.avatarUrl,
         })
       } else if (step === 1) {
-        const others = deriveContent(draft).filter(b => b.type !== 'link')
-        const linkBlocks: ContentBlock[] = rows
-          .filter(r => r.title.trim() || r.url.trim())
-          .map((r, i) => ({
-            id: generateId(), type: 'link', order: i, enabled: true,
-            title: r.title.trim(), url: r.url.trim(), icon: 'Link',
-          }))
-        const content = [...linkBlocks, ...others].map((b, i) => ({ ...b, order: i }))
+        // Edit matched blocks in place so everything the wizard doesn't ask
+        // about — thumbnails, framing, featured, scheduling, pricing — survives,
+        // and headers/videos keep their position relative to the links.
+        const original = deriveContent(draft)
+        const filled = rows.filter(r => r.title.trim() || r.url.trim())
+        const keptIds = new Set(filled.map(r => r.id).filter(Boolean))
+        const originalLinkIds = new Set(
+          original.filter(b => b.type === 'link').map(b => b.id),
+        )
+
+        const merged: ContentBlock[] = []
+        for (const block of original) {
+          if (block.type !== 'link') { merged.push(block); continue }
+          if (!keptIds.has(block.id)) continue // removed in the wizard
+          const row = filled.find(r => r.id === block.id)!
+          merged.push({ ...block, title: row.title.trim(), url: row.url.trim() })
+        }
+        // Rows the user typed fresh get appended in the order they added them.
+        const nextRows: LinkRow[] = filled.map(r => ({ ...r }))
+        for (const row of nextRows) {
+          if (row.id && originalLinkIds.has(row.id)) continue
+          row.id = generateId()
+          merged.push({
+            id: row.id, type: 'link', order: 0, enabled: true,
+            title: row.title.trim(), url: row.url.trim(), icon: 'Link',
+          })
+        }
+
+        const content = merged.map((b, i) => ({ ...b, order: i }))
+        setRows(nextRows.length ? nextRows : [{ title: '', url: '' }])
         patchDraft({ content, links: [] })
         await persist({ content, links: [] })
       } else if (step === 2) {
