@@ -90,7 +90,7 @@ export function SetupChecklist({ config }: SetupChecklistProps) {
           <div className="pt-2 space-y-1">
             {items.filter(i => i.done).map(item => (
               <div key={item.label} className="flex items-center gap-2 px-3 text-xs text-muted-foreground">
-                <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                <Check className="h-3.5 w-3.5 text-success shrink-0" />
                 <span className="line-through">{item.label}</span>
               </div>
             ))}

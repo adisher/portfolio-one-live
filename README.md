@@ -6,9 +6,33 @@ Every feature is included — there are no tiers and no subscription, and it run
 
 ---
 
-## One-Click Deploy
+## Deploy
+
+There are two ways in. Both end with LinkPlate running on your own Vercel
+account, with your own Redis database and your own domain.
+
+### A. One click
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fadisher%2Fportfolio-one-live&integration-ids=oac_V3R1GIpkoJorr6fqyiwdhl17&project-name=linkplate&repository-name=linkplate)
+
+Vercel copies this repository into **your** GitHub account as a new repo named
+`linkplate`, provisions Redis, and deploys. You do not need to push anything
+first — the button creates the repo for you.
+
+### B. From your own copy
+
+If you received the code as an archive, or you want the repository under a
+different name:
+
+1. Create an empty repository in your GitHub account
+2. Push this code to it
+3. In Vercel, choose **Add New → Project** and import that repository
+4. Add the Upstash integration so `UPSTASH_REDIS_REST_URL` and
+   `UPSTASH_REDIS_REST_TOKEN` are injected
+
+If you republish your copy for others to deploy, update the `repository-url`
+in the button above to point at your repository — Vercel clones whatever that
+URL names, not the repo the README happens to be sitting in.
 
 ---
 

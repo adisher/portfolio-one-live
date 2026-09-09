@@ -355,8 +355,8 @@ export function SetupWizard({ config }: SetupWizardProps) {
             {/* Step 5 — done */}
             {step === 4 && (
               <div className="text-center py-4 space-y-3">
-                <div className="mx-auto w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <PartyPopper className="h-6 w-6 text-green-500" />
+                <div className="mx-auto w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
+                  <PartyPopper className="h-6 w-6 text-success" />
                 </div>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                   {fresh
