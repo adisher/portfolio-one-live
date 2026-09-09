@@ -104,8 +104,8 @@ export function DashboardClient({ analytics, config }: DashboardClientProps) {
               <AreaChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#f5a524" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#f5a524" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -135,11 +135,11 @@ export function DashboardClient({ analytics, config }: DashboardClientProps) {
                 <Area
                   type="monotone"
                   dataKey="views"
-                  stroke="#6366f1"
+                  stroke="#f5a524"
                   strokeWidth={2}
                   fill="url(#viewsGradient)"
                   dot={false}
-                  activeDot={{ r: 4, fill: '#6366f1' }}
+                  activeDot={{ r: 4, fill: '#f5a524' }}
                 />
               </AreaChart>
             </ResponsiveContainer>

@@ -3,8 +3,8 @@ import '../styles/globals.css'
 import { googleFontsHref } from '@/lib/fonts'
 
 export const metadata: Metadata = {
-  title: 'Bio Link',
-  description: 'Bio link page',
+  title: 'LinkPlate',
+  description: 'One link for everything you make.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { LogoMark, Wordmark } from '@/components/brand/Logo'
 
 // Six destinations. Social lives inside Profile, SEO inside Settings, and the
 // old "Sections" page is gone — its pieces moved into Content.
@@ -41,8 +42,11 @@ export function AdminSidebar() {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="px-6 py-5 border-b border-border">
-        <span className="font-bold text-xl text-foreground">Bio Link Pro</span>
-        <p className="text-xs text-muted-foreground mt-0.5">Admin Panel</p>
+        <div className="flex items-center gap-2.5">
+          <LogoMark size={26} />
+          <Wordmark />
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">Admin Panel</p>
       </div>
 
       {/* Nav */}
@@ -113,7 +117,10 @@ export function AdminSidebar() {
 
       {/* Mobile header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-background border-b border-border">
-        <span className="font-bold text-lg">Bio Link Pro</span>
+        <div className="flex items-center gap-2">
+          <LogoMark size={22} />
+          <Wordmark size="sm" />
+        </div>
         <Button variant="ghost" size="icon" onClick={() => setMobileOpen(v => !v)}>
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>

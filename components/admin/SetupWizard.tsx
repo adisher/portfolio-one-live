@@ -218,17 +218,17 @@ export function SetupWizard({ config }: SetupWizardProps) {
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="w-name">Your name</Label>
-                  <Input id="w-name" value={draft.name} placeholder="Adil Sher"
+                  <Input id="w-name" value={draft.name} placeholder="Maya Okonkwo"
                     onChange={e => patchDraft({ name: e.target.value })} />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="w-tagline">Tagline</Label>
-                  <Input id="w-tagline" value={draft.tagline} placeholder="Full Stack Developer"
+                  <Input id="w-tagline" value={draft.tagline} placeholder="Ceramicist & teacher"
                     onChange={e => patchDraft({ tagline: e.target.value })} />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="w-bio">Short bio <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                  <Textarea id="w-bio" rows={2} value={draft.bio} placeholder="I build things for the web."
+                  <Textarea id="w-bio" rows={2} value={draft.bio} placeholder="Studio in Lisbon. Wheel-thrown tableware, twice a year."
                     onChange={e => patchDraft({ bio: e.target.value })} />
                 </div>
               </>

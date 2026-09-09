@@ -1,12 +1,14 @@
-# Bio Link Pro
+# LinkPlate
 
-A polished, white-label bio-link platform with a visual admin panel, built-in analytics, 5 themes, and one-click deployment to Vercel. Built with Next.js 14, Upstash Redis, and shadcn/ui.
+One link for everything you make. A white-label link-in-bio platform with a visual admin panel, built-in analytics, 9 themes plus a custom theme builder, and one-click deployment to Vercel. Built with Next.js 14, Upstash Redis, and shadcn/ui.
+
+Every feature is included — there are no tiers and no subscription, and it runs on your own Vercel and Redis accounts.
 
 ---
 
 ## One-Click Deploy
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYOUR_USERNAME%2FYOUR_REPO&integration-ids=oac_V3R1GIpkoJorr6fqyiwdhl17&project-name=bio-link-pro&repository-name=bio-link-pro)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYOUR_USERNAME%2FYOUR_REPO&integration-ids=oac_V3R1GIpkoJorr6fqyiwdhl17&project-name=linkplate&repository-name=linkplate)
 
 > **Replace** `YOUR_USERNAME/YOUR_REPO` in the URL above with your GitHub username and repo name after pushing this code.
 
@@ -14,10 +16,13 @@ A polished, white-label bio-link platform with a visual admin panel, built-in an
 
 ## What You Get
 
-- **5 beautiful themes** — Dark Gradient, Minimal Light, Glassmorphism, Neon Dark, Warm Gradient
+- **9 themes plus a builder** — Dark Gradient, Minimal Light, Glassmorphism, Neon Dark, Warm Gradient, Midnight, Forest, Rose Quartz and Mono Dark, or build your own
+- **19 fonts** across sans, serif and display
+- **7 content block types** — links, headers, video, music, embeds, products and tip jars
+- **Guided setup** — a five-step walkthrough with a live preview on first run
 - **Visual admin panel** at `/admin` — no code editing needed
 - **Built-in analytics** — page views, top countries, top links, top referrers
-- **Drag-and-drop link management** with icon picker
+- **Drag-and-drop content management** — headers and the links beneath them move as one group
 - **Dynamic SEO** — auto-generates OG images if you don't provide one
 - **Framer Motion animations** on the public page
 - **Single-admin, password-protected** — no accounts or signups
