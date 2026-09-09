@@ -8,9 +8,7 @@ Every feature is included — there are no tiers and no subscription, and it run
 
 ## One-Click Deploy
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYOUR_USERNAME%2FYOUR_REPO&integration-ids=oac_V3R1GIpkoJorr6fqyiwdhl17&project-name=linkplate&repository-name=linkplate)
-
-> **Replace** `YOUR_USERNAME/YOUR_REPO` in the URL above with your GitHub username and repo name after pushing this code.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fadisher%2Fportfolio-one-live&integration-ids=oac_V3R1GIpkoJorr6fqyiwdhl17&project-name=linkplate&repository-name=linkplate)
 
 ---
 
