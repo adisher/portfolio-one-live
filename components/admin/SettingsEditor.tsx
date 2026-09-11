@@ -106,7 +106,7 @@ export function SettingsEditor() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'biolink-config.json'
+      a.download = 'linkplate-config.json'
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
